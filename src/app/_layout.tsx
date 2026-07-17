@@ -1,67 +1,53 @@
-import { DarkTheme, DefaultTheme, ThemeProvider, Tabs } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Text, useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { AppThemeProvider, useTheme } from '@/design-system/theme';
 import { SessionProvider } from '@/lib/auth';
 
-function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
-  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.55 }}>{glyph}</Text>;
+/**
+ * Kök navigasyon: Stack (Design §8 seviye modeli).
+ * Level 0 = (tabs) grubu; onboarding gibi full-screen modal akışlar (Design
+ * §10) ileride bu Stack'e KARDEŞ ekran olarak eklenir (Faz 3) — sekmelerin
+ * ÜZERİNE overlay üstüne overlay bindirilmez.
+ */
+function RootStack() {
+  const { colors } = useTheme();
+
+  // Light-first (LOCKED): sistem dark modundan bağımsız, her zaman pudra tema.
+  // Navigasyon kütüphanesinin teması semantic token'lardan türetilir.
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: colors.action.primary,
+      background: colors.surface.canvas,
+      card: colors.navigation.background,
+      text: colors.text.primary,
+      border: colors.navigation.border,
+    },
+  };
+
+  return (
+    <ThemeProvider value={navTheme}>
+      {/* Canvas her zaman açık → durum çubuğu simgeleri her zaman koyu. */}
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.surface.canvas },
+        }}>
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </ThemeProvider>
+  );
 }
 
 export default function RootLayout() {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const colors = Colors[scheme];
-
   return (
     <SessionProvider>
-      <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <Tabs
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.background },
-          headerTitleStyle: { color: colors.text },
-          headerShadowVisible: false,
-          sceneStyle: { backgroundColor: colors.background },
-          tabBarStyle: {
-            backgroundColor: colors.background,
-            borderTopColor: colors.backgroundElement,
-          },
-          tabBarActiveTintColor: colors.text,
-          tabBarInactiveTintColor: colors.textSecondary,
-        }}>
-        {/* Sekme sırası ARCHITECTURE_DECISIONS §3 (Navigasyon C, kilitli) —
-            revize 2026-07-10: Keşif 2., Sohbet SON sekme. */}
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Ana Sayfa',
-            tabBarIcon: ({ focused }) => <TabIcon glyph="🌙" focused={focused} />,
-          }}
-        />
-        <Tabs.Screen
-          name="kesif"
-          options={{
-            title: 'Keşif',
-            tabBarIcon: ({ focused }) => <TabIcon glyph="🔮" focused={focused} />,
-          }}
-        />
-        <Tabs.Screen
-          name="bahce"
-          options={{
-            title: 'Bahçe',
-            tabBarIcon: ({ focused }) => <TabIcon glyph="🌿" focused={focused} />,
-          }}
-        />
-        <Tabs.Screen
-          name="sohbet"
-          options={{
-            title: 'Sohbet',
-            tabBarIcon: ({ focused }) => <TabIcon glyph="💬" focused={focused} />,
-          }}
-        />
-      </Tabs>
-      </ThemeProvider>
+      <AppThemeProvider>
+        <RootStack />
+      </AppThemeProvider>
     </SessionProvider>
   );
 }
