@@ -12,11 +12,8 @@
  */
 
 export const shellCopy = {
-  anaSayfa: {
-    subtitle: 'Günün transitine özel bitki kartın ve o güne özel sözün burada belirecek.',
-    skyCardLabel: 'bugünün göğü · mock',
-    mockNote: 'Veri mock (Swiss Ephemeris · Faz 5). Gerçek hesap gelince aynı arayüzden akacak.',
-  },
+  // anaSayfa kabuk metinleri kaldırıldı: Ana Sayfa artık Günlük Pusula
+  // (specs/ana-sayfa-spec.md); ekran metinleri src/content/home-copy.ts'te.
   bahce: {
     title: 'Bahçe',
     subtitle:

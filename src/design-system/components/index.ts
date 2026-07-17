@@ -5,6 +5,7 @@
 
 export { Button, IconButton, type ButtonProps, type IconButtonProps, type ButtonVariant } from './button';
 export { Card, type CardProps } from './card';
+export { Chip, type ChipProps } from './chip';
 export { ListItem, type ListItemProps } from './list-item';
 export { Reveal, type RevealProps } from './reveal';
 export { Skeleton, type SkeletonProps } from './skeleton';

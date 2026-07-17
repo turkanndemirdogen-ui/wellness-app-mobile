@@ -10,6 +10,8 @@ export type Herb = {
   herb_id: string;
   name_tr: string | null;
   gezegen_birincil: string | null;
+  /** Günün kartı havuzu filtresi (ana-sayfa-spec B3: havuz daima app_safe). */
+  app_safe: boolean | null;
   guven_tier: string | null;
   data: {
     tek_satir?: string | null;
@@ -42,7 +44,7 @@ export async function fetchHerbs(): Promise<Herb[]> {
   if (!supabase) throw new NotConfiguredError();
   const { data, error } = await supabase
     .from('herbs')
-    .select('herb_id,name_tr,gezegen_birincil,guven_tier,data')
+    .select('herb_id,name_tr,gezegen_birincil,app_safe,guven_tier,data')
     .order('name_tr', { ascending: true });
   if (error) throw error;
   return (data ?? []) as Herb[];
@@ -56,6 +58,29 @@ export async function fetchQuizzes(): Promise<Quiz[]> {
     .order('ay', { ascending: true });
   if (error) throw error;
   return (data ?? []) as Quiz[];
+}
+
+/**
+ * Günün sözü havuzu (ana-sayfa-spec B5 veri kontratı: [id, text_tr,
+ * theme_tags[], kaynak_tipi] — kaynak_tipi yalnız iç denetim, İSTENMEZ).
+ *
+ * NOT: `quotes` tablosu henüz canlı DB'de yok (launch-blocker #3, söz havuzu
+ * content/soz-havuzu.json'da bekliyor). Tablo gelene dek bu çağrı hata döner;
+ * çağıran yüzey bloğu sessizce gizler (spec: havuz boşsa blok gizlenir).
+ */
+export type Quote = {
+  soz_id: string;
+  text_tr: string | null;
+};
+
+export async function fetchQuotes(): Promise<Quote[]> {
+  if (!supabase) throw new NotConfiguredError();
+  const { data, error } = await supabase
+    .from('quotes')
+    .select('soz_id,text_tr')
+    .order('soz_id', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Quote[];
 }
 
 /** Gezegen anahtarı → sembol (ekranda bitki rafını gösterir). */
