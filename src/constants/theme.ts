@@ -1,35 +1,24 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Tema sabitleri — artık İNCE KÖPRÜ (shim).
+ *
+ * Değerlerin TEK KAYNAĞI: src/design-system/tokens/tokens.json
+ * (W3C formatı → `npm run tokens` → primitive.generated.ts). Bu dosya yalnız
+ * mevcut ekran sözleşmesini (Colors/Spacing/Typography/Fonts adları) korur;
+ * yeni kod semantic katman geldiğinde (T2) oradan okuyacak.
+ *
+ * Renk hex'leri ve tipografi GEÇİCİ (Faz 6'da kesinleşecek) — artık
+ * tokens.json içinde işaretli. Değer değişikliği BURADA değil, tokens.json'da
+ * yapılır; ekranlar otomatik uyum sağlar.
  */
 
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
-// Soft-witchery pudra paleti — GEÇİCİ (hex'ler Faz 6'da kesinleşecek; checklist:
-// "Renk paleti hex'leri + font seçimi sabit kabul etme"). Anahtar isimleri mevcut
-// ekranlarla uyumlu (text/background/backgroundElement/backgroundSelected/
-// textSecondary) + soft-witchery için `accent` eklendi. Değer değişince ekranlar
-// otomatik uyum sağlar (hepsi Colors üstünden okur).
-export const Colors = {
-  light: {
-    text: '#3A2E37',              // derin erik-kahve (saf siyah değil)
-    background: '#FBF6F3',        // pudra krem
-    backgroundElement: '#F1E4E1', // pudra gül kart
-    backgroundSelected: '#E7D3D0',
-    textSecondary: '#857078',     // mat gül-gri
-    accent: '#A86B77',            // tozlu gül vurgu
-  },
-  dark: {
-    text: '#F1E4E1',              // yumuşak pudra
-    background: '#171016',        // derin patlıcan (gece)
-    backgroundElement: '#271E26',
-    backgroundSelected: '#342936',
-    textSecondary: '#B29AA4',     // mat mor
-    accent: '#C98B99',
-  },
-} as const;
+import { primitive } from '@/design-system/tokens/primitive.generated';
+
+// Soft-witchery pudra paleti — anahtar adları mevcut ekranlarla birebir uyumlu.
+export const Colors = primitive.color;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
@@ -61,20 +50,32 @@ export const Fonts = Platform.select({
 // Tipografi token'ı — başlık serif (soft-witchery tını), gövde sans.
 // GEÇİCİ: şimdilik SİSTEM serif'i (Fonts.serif). Özel display-serif (font seçimi
 // kesinleşince, Faz 6) expo-font ile yüklenip yalnız burada değişecek.
+// (Platform.select JSON'a taşınamadığı için Fonts/Typography bu köprüde kalır;
+//  sayısal tipografi rampası T6'da token'a iner.)
 export const Typography = {
   heading: { fontFamily: Fonts.serif },
   body: { fontFamily: Fonts.sans },
 } as const;
 
+// Mevcut ekran sözleşmesi (half…six) → kanonik ölçek köprüsü.
+// half=2 legacy optik değerdir (kanonik ölçekte yok); taşınma sonraki görevlerde.
 export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+  half: primitive.space.s2,
+  one: primitive.space.s4,
+  two: primitive.space.s8,
+  three: primitive.space.s16,
+  four: primitive.space.s24,
+  five: primitive.space.s32,
+  six: primitive.space.s64,
 } as const;
+
+// Köşe yuvarlaklığı — adlar kanonik (§14.1), sayılar tokens.json'da (GEÇİCİ).
+export const Radius = primitive.radius;
+
+// Sınır kalınlıkları (§45 borderWidth grubu) ve minimum dokunma hedefi
+// (roadmap: min 44, tercih 48) — ekran katmanının token erişim köprüsü.
+export const BorderWidth = primitive.borderWidth;
+export const MinTouchTarget = primitive.space.s48;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

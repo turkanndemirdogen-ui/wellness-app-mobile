@@ -43,7 +43,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint && node ./scripts/check-tokens.mjs",
+    "check:tokens": "node ./scripts/check-tokens.mjs",
+    "tokens": "node ./scripts/generate-tokens.mjs"
   },
   "private": true
 }
