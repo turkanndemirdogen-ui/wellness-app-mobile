@@ -31,6 +31,8 @@ export type CardProps = {
   footer?: ReactNode;
   /** Verilirse kartın TÜM yüzeyi basılır olur. */
   onPress?: () => void;
+  /** true → hero/vurgu kartı: elevation level 2 (§14.3). Varsayılan level 1. */
+  hero?: boolean;
   disabled?: boolean;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -43,6 +45,7 @@ export function Card({
   media,
   footer,
   onPress,
+  hero = false,
   disabled = false,
   accessibilityLabel,
   style,
@@ -68,6 +71,7 @@ export function Card({
   const containerStyle = [
     baseContainer,
     { backgroundColor: colors.surface.card },
+    hero ? { elevation: primitive.elevation.level2 } : null,
     disabled ? { opacity: primitive.opacity.disabled } : null,
     style,
   ];

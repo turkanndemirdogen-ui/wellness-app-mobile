@@ -25,10 +25,10 @@ export const primitive = {
       "danger": "#C98B8B"
     },
     "ambient": {
-      "morning": "#FBF3EA",
+      "morning": "#F8ECD9",
       "day": "#FBF6F3",
-      "evening": "#F9F1F6",
-      "night": "#F2EFF6"
+      "evening": "#F4E7F0",
+      "night": "#E9E4F2"
     }
   },
   "space": {

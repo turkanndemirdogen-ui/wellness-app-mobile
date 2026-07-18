@@ -44,15 +44,21 @@ export async function readCheckin(dateKey: string): Promise<CheckinEntry | null>
   }
 }
 
+/**
+ * Kaydı kalıcılaştırır. Başarıda girdiyi, yazım hatasında null döner — çağıran
+ * yüzey tamamlanma geri bildirimini (haptic §20) yalnız gerçek kalıcılıkta
+ * verir; hata yine sessizdir (ekran düşmez, iyimser durum yaşar).
+ */
 export async function saveCheckin(
   dateKey: string,
   emotionId: string,
-): Promise<CheckinEntry> {
+): Promise<CheckinEntry | null> {
   const entry: CheckinEntry = { emotionId, savedAt: new Date().toISOString() };
   try {
     await AsyncStorage.setItem(keyFor(dateKey), JSON.stringify(entry));
+    return entry;
   } catch {
     // Yazım hatası ekranı düşürmez; seçim en azından oturum boyunca yaşar.
+    return null;
   }
-  return entry;
 }

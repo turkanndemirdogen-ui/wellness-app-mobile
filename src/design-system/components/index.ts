@@ -3,6 +3,7 @@
  * üzerine kurulur (§49 bağımlılık kuralı).
  */
 
+export { AmbientBackground, type AmbientBackgroundProps } from './ambient-background';
 export { Button, IconButton, type ButtonProps, type IconButtonProps, type ButtonVariant } from './button';
 export { Card, type CardProps } from './card';
 export { Chip, type ChipProps } from './chip';

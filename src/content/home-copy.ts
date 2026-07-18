@@ -12,6 +12,7 @@
  */
 
 import type { DailyTransit, ZodiacSign } from '@/lib/astro';
+import type { Herb } from '@/lib/content';
 
 /** Tarih başlığı sabitleri — Date.getMonth() / Date.getDay() dizinleriyle. */
 export const MONTHS_TR = [
@@ -81,4 +82,30 @@ export const homeCopy = {
     /** B3 erişilebilirlik etiketi şablon başı (onaylı). */
     a11yPrefix: 'Günün bitkisi',
   },
+  quote: {
+    /**
+     * B5 mikro-eylem etiketleri — ana-sayfa-spec B5 BİREBİR: "kaydet ♡ ·
+     * paylaş" (Sprint 2.2A ⑦; spec metni olduğu için yeniden yazılmadı).
+     */
+    save: 'kaydet',
+    share: 'paylaş',
+  },
 } as const;
+
+/**
+ * B3 açılış bitkisi — spec B3 Haller: "İlk açılış + cache yok → sabit 'açılış
+ * bitkisi' kartı". Sprint 2.2A ürün sahibi kararı (ONAYLI): canlı veri yoksa
+ * hero asla boş kalmaz; minimal üretim-güvenli içerik gömülür (ad + kısa
+ * açıklama + küçük illüstrasyon). Cümle, spec'in kendi örnek tonudur
+ * ("Papatya · ☉ — geleneksel olarak sakinlik anlarıyla anılır") — doz/tedavi
+ * dili yok. B-üretim #2 launch setinde işaretli açılış bitkisi gelince bu
+ * kayıt onunla değiştirilir.
+ */
+export const OPENING_HERB: Herb = {
+  herb_id: 'papatya',
+  name_tr: 'Papatya',
+  gezegen_birincil: 'gunes',
+  app_safe: true,
+  guven_tier: null,
+  data: { tek_satir: 'Geleneksel olarak sakinlik anlarıyla anılır.' },
+};
