@@ -29,6 +29,16 @@ export function buildSemanticColors(timeOfDay: TimeOfDay) {
       card: p.backgroundElement,
       selected: p.backgroundSelected,
     },
+    /**
+     * Ambient grubu (§45 semantic seti; §11.5): ekran üstünün yumuşak ışık
+     * yıkaması. `wash` günün saat diliminin tonudur, `base` eridiği nötr
+     * zemin — gün diliminde wash === base (yıkama görünmez, degrade nötr).
+     * YENİ RENK DEĞİL: her iki değer de mevcut primitivlerdir.
+     */
+    ambient: {
+      wash: primitive.color.ambient[timeOfDay],
+      base: p.background,
+    },
     text: {
       primary: p.text,
       secondary: p.textSecondary,

@@ -17,6 +17,8 @@ export type Herb = {
     tek_satir?: string | null;
     guvenlik?: { uyari_chip?: string | null } | null;
     beden_bolgeleri?: string[] | null;
+    /** İllüstrasyon referansı (spec B3 alan listesi) — varlık haritası anahtarı. */
+    illus_ref?: string | null;
     [k: string]: unknown;
   };
 };
@@ -83,10 +85,14 @@ export async function fetchQuotes(): Promise<Quote[]> {
   return (data ?? []) as Quote[];
 }
 
-/** Gezegen anahtarı → sembol (ekranda bitki rafını gösterir). */
+/**
+ * Gezegen anahtarı → glif (ekranda bitki rafını gösterir). Astronomik METİN
+ * sembolleri — emoji değil (§16.1 emoji-as-icon yasak; ana-sayfa-spec B3
+ * örneği "Papatya · ☉" bu seti kullanır).
+ */
 export const PLANET_GLYPH: Record<string, string> = {
-  ay: '🌙',
-  gunes: '☀️',
+  ay: '☽',
+  gunes: '☉',
   merkur: '☿',
   venus: '♀',
   mars: '♂',
