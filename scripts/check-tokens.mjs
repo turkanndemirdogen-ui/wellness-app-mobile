@@ -50,6 +50,26 @@ const RULES = [
     desc: 'Easing doğrudan — motionEasing köprüsünü kullan',
     patterns: [/\bEasing\./],
   },
+  {
+    id: 'fontWeight',
+    desc: "fontWeight literal — tipografi variant'ı kullan (AppText)",
+    patterns: [/fontWeight:\s*['"]?\d/],
+  },
+  {
+    id: 'borderWidth',
+    desc: 'borderWidth literal — BorderWidth/primitive.borderWidth kullan',
+    patterns: [/borderWidth:\s*\d/],
+  },
+  {
+    id: 'shadow',
+    desc: 'shadow* literal — shadow token katmanını kullan',
+    patterns: [/\bshadow(Color|Opacity|Radius|Offset)\s*:/],
+  },
+  {
+    id: 'panelDark',
+    desc: 'visualPanels (panel-only dark) — yalnız VisualPanel/atmosphere/spec katmanında kullanılabilir; screen background YASAK (15 §4)',
+    patterns: [/\bvisualPanels\b/],
+  },
 ];
 
 // path (src'e göre, / ayraçlı) → { rules: Set('*' veya kural id), reason }
@@ -61,6 +81,42 @@ const ALLOWLIST = new Map([
   [
     'design-system/theme/motion.ts',
     { rules: new Set(['easing']), reason: 'token → Reanimated easing köprüsü (tek kurulum noktası)' },
+  ],
+  // --- panelDark izinli katman (15 §4: koyuluğun yaşayabileceği TEK yerler) ---
+  [
+    'design-system/tokens/screen-specs.ts',
+    { rules: new Set(['panelDark']), reason: 'ScreenVisualSpec visualPanelHex kaynağı + PANEL_DARK_HEXES yasak listesi (assertScreenSpec)' },
+  ],
+  [
+    'design-system/theme/atmosphere-provider.tsx',
+    { rules: new Set(['panelDark']), reason: 'panel atmosfer varyantı üreticisi — krom sabit (15 §3)' },
+  ],
+  [
+    'design-system/components/visual-panel.tsx',
+    { rules: new Set(['panelDark']), reason: 'koyuluğun izinli tek taşıyıcısı (scrim zorunlu)' },
+  ],
+  // --- mevcut fontWeight/borderWidth borcu (VISUAL_TECH_DEBT §2a-b) ---
+  // P3 component / P5 ekran işlerinde variant sistemine geçince silinir;
+  // Phase 1'de bu dosyalara dokunulmaz (koruma sınırları).
+  [
+    'design-system/components/button.tsx',
+    { rules: new Set(['fontWeight']), reason: 'legacy borç — P3 Button refactor’unda AppText variant’a taşınır' },
+  ],
+  [
+    'design-system/components/chip.tsx',
+    { rules: new Set(['fontWeight']), reason: 'legacy borç — P3 Chip refactor’unda taşınır' },
+  ],
+  [
+    'design-system/components/list-item.tsx',
+    { rules: new Set(['fontWeight']), reason: 'legacy borç — P3 ListItem refactor’unda taşınır' },
+  ],
+  [
+    'app/(tabs)/kesif.tsx',
+    { rules: new Set(['fontWeight', 'borderWidth']), reason: 'legacy borç — P5 ekran retrofit’inde taşınır (Phase 1 ekrana dokunmaz)' },
+  ],
+  [
+    'app/dev-gallery.tsx',
+    { rules: new Set(['panelDark']), reason: '__DEV__ kabul yüzeyi — panel-only darkness vitrini (üretimde erişilemez)' },
   ],
 ]);
 

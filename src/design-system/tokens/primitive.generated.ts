@@ -15,14 +15,52 @@ export const primitive = {
       "accent": "#A86B77",
       "danger": "#A85B5B"
     },
-    "dark": {
-      "text": "#F1E4E1",
-      "background": "#171016",
-      "backgroundElement": "#271E26",
-      "backgroundSelected": "#342936",
-      "textSecondary": "#B29AA4",
-      "accent": "#C98B99",
-      "danger": "#C98B8B"
+    "chrome": {
+      "background": "#F8F2EC",
+      "backgroundAlt": "#FCF8F4",
+      "surface": "#FFFDFC",
+      "surfaceTint": "#F5ECE7",
+      "powder": "#EFD9DD",
+      "parchment": "#F6EEE4",
+      "stone": "#E7E0D8",
+      "border": "#D8CEC5",
+      "textPrimary": "#2E2926",
+      "textSecondary": "#625954",
+      "textMuted": "#827771"
+    },
+    "botanical": {
+      "sage": "#879A7A",
+      "moss": "#687655",
+      "fern": "#55735D",
+      "eucalyptus": "#78968B",
+      "olive": "#8D8A58",
+      "bark": "#765B49",
+      "ochre": "#B68943",
+      "terracotta": "#A45F48",
+      "calendula": "#D9982F",
+      "borage": "#4D78A6",
+      "hypericum": "#D2B42C"
+    },
+    "celestial": {
+      "moon": "#A9B8C2",
+      "sky": "#7C9DB3",
+      "dusk": "#65728D",
+      "indigo": "#4B5374",
+      "violet": "#827394",
+      "plum": "#67505F",
+      "gold": "#C5A260",
+      "copper": "#A66F52"
+    },
+    "visualPanels": {
+      "dusk": "#3F4A5D",
+      "night": "#222B38",
+      "ritual": "#31303D",
+      "astrology": "#293346",
+      "gardenNight": "#26392F"
+    },
+    "scrim": {
+      "transparent": "transparent",
+      "soft": "rgba(0,0,0,0.35)"
     },
     "ambient": {
       "morning": "#F8ECD9",
@@ -177,5 +215,107 @@ export const primitive = {
     "level2": 3,
     "level3": 6,
     "level4": 12
+  },
+  "layout": {
+    "screenPadding": 20,
+    "compactScreenPadding": 16,
+    "topPadding": 16,
+    "sectionGap": 28,
+    "denseSectionGap": 20,
+    "cardGap": 12,
+    "largeCardGap": 16,
+    "inlineGap": 8,
+    "heroRadius": 24,
+    "cardRadius": 16,
+    "compactRadius": 12,
+    "buttonHeight": 48,
+    "touchTarget": 44
+  },
+  "motionLimits": {
+    "maxScale": 1.02,
+    "pressScale": 0.98,
+    "maxAnimatedElementsPerScreen": 2,
+    "ambientMinMs": 8000,
+    "ambientMaxMs": 16000,
+    "responsiveMinMs": 160,
+    "responsiveMaxMs": 300,
+    "ceremonialMinMs": 3000,
+    "ceremonialMaxMs": 5000
+  },
+  "proTeaser": {
+    "background": "#FFFDFC",
+    "accent": "#C5A260",
+    "border": "#D8CEC5",
+    "lockedPanel": "#31303D",
+    "radius": 16,
+    "padding": 16,
+    "gap": 12
+  },
+  "typeVariant": {
+    "displayHero": {
+      "size": 32,
+      "lineHeight": 40,
+      "weight": "600"
+    },
+    "screenTitle": {
+      "size": 28,
+      "lineHeight": 34,
+      "weight": "600"
+    },
+    "sectionTitle": {
+      "size": 20,
+      "lineHeight": 26,
+      "weight": "600"
+    },
+    "plantName": {
+      "size": 24,
+      "lineHeight": 30,
+      "weight": "600"
+    },
+    "ceremonial": {
+      "size": 24,
+      "lineHeight": 32,
+      "weight": "500"
+    },
+    "readingLead": {
+      "size": 18,
+      "lineHeight": 28,
+      "weight": "400"
+    },
+    "reading": {
+      "size": 16,
+      "lineHeight": 26,
+      "weight": "400"
+    },
+    "scientificName": {
+      "size": 14,
+      "lineHeight": 20,
+      "weight": "400"
+    },
+    "quote": {
+      "size": 22,
+      "lineHeight": 30,
+      "weight": "400"
+    },
+    "uiBody": {
+      "size": 15,
+      "lineHeight": 22,
+      "weight": "400"
+    },
+    "uiLabel": {
+      "size": 13,
+      "lineHeight": 18,
+      "weight": "500"
+    },
+    "uiCaption": {
+      "size": 12,
+      "lineHeight": 18,
+      "weight": "400"
+    },
+    "uiButton": {
+      "size": 16,
+      "lineHeight": 22,
+      "weight": "600"
+    }
   }
 } as const;

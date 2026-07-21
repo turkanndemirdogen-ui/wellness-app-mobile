@@ -1,8 +1,10 @@
 /**
  * SEMANTIC katman — primitive → semantic eşlemesi (Design master §44-45).
  *
- * LIGHT-FIRST (LOCKED): v1.0'da tam dark mode YOK. Semantic renkler yalnız
- * light primitivlerden türetilir; primitive.color.dark runtime'da kullanılmaz.
+ * LIGHT-FIRST (LOCKED, 15 §3 ile teyitli): tam dark mode YOK. Semantic renkler
+ * yalnız açık primitivlerden türetilir; koyuluk yalnız panel-only token'larda
+ * yaşar (panel-only — VisualPanel bileşeni) ve ana kroma asla sızmaz.
+ * (primitive.color.dark 2026-07-21'de kaldırıldı; hiç kullanılmıyordu.)
  *
  * ADAPTIVE AMBIENT (Design §11.5): günün saatine göre YALNIZ surface.canvas
  * tonu değişir (primitive.color.ambient). Kart, metin, navigasyon gibi çekirdek

@@ -9,6 +9,8 @@
 export { Surface, type SurfaceProps, type SurfaceRole, type RadiusKey } from './surface';
 export { Stack, type StackProps, type SpaceKey } from './stack';
 export { Text, type TextProps, type TextRole, type TextTone } from './text';
-export { Icon, type IconProps, type IconName, type IconSize } from './icon';
+export { AppText, isValidQuoteText, type AppTextProps, type AppTextTone } from './app-text';
+export { ScreenShell, type ScreenShellProps } from './screen-shell';
+export { Icon, ICON_SOURCE, type IconProps, type IconName, type IconSize, type IconSource } from './icon';
 export { Divider, type DividerProps } from './divider';
 export { Spacer, type SpacerProps } from './spacer';
