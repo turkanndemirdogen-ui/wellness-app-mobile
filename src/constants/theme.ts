@@ -20,7 +20,9 @@ import { primitive } from '@/design-system/tokens/primitive.generated';
 // Soft-witchery pudra paleti — anahtar adları mevcut ekranlarla birebir uyumlu.
 export const Colors = primitive.color;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+// color.dark 2026-07-21'de kaldırıldı (15 §3: genel dark theme yok; koyuluk
+// yalnız panel-only visual panel token'larında). Tip artık yalnız light setini tanır.
+export type ThemeColor = keyof typeof Colors.light;
 
 export const Fonts = Platform.select({
   ios: {

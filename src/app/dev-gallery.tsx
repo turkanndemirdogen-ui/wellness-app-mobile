@@ -17,27 +17,47 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { shellCopy } from '@/content/shell-copy';
 import {
+  AstrologyInterpretationNotice,
   Button,
   Card,
   EmptyState,
   ErrorState,
+  HealthInformationNotice,
   IconButton,
   ListItem,
   Loader,
   OfflineState,
+  ProTeaser,
   Reveal,
   Skeleton,
+  SymbolicReferenceNotice,
+  VisualPanel,
   type ButtonVariant,
 } from '@/design-system/components';
 import { useMotionScale, useWidthClass } from '@/design-system/hooks';
-import { Divider, Icon, Text, type IconName } from '@/design-system/primitives';
-import { textRoles, useTheme, type TextRoleName } from '@/design-system/theme';
+import { AppText, Divider, Icon, Text, type IconName } from '@/design-system/primitives';
+import {
+  appTextVariants,
+  fontRoles,
+  textRoles,
+  useAtmosphere,
+  useTheme,
+  type AppTextVariant,
+  type PanelKind,
+  type TextRoleName,
+} from '@/design-system/theme';
+import { primitive } from '@/design-system/tokens/primitive.generated';
+import { allScreenSpecs } from '@/design-system/tokens/screen-specs';
+import { TR_TEST_STRING } from '@/lib/text-tr';
 
 const ICON_NAMES: IconName[] = ['moon', 'crystalBall', 'herb', 'chat', 'seedling', 'sparkles'];
 const TEXT_ROLES = Object.keys(textRoles) as TextRoleName[];
+const APP_TEXT_VARIANTS = Object.keys(appTextVariants) as AppTextVariant[];
+const PANEL_KINDS = Object.keys(primitive.color.visualPanels) as PanelKind[];
+const CHROME_ENTRIES = Object.entries(primitive.color.chrome);
 const BUTTON_VARIANTS: ButtonVariant[] = [
   'primary',
   'secondary',
@@ -56,6 +76,7 @@ function Gallery() {
   const { colors, timeOfDay } = useTheme();
   const { horizontalMargin, widthClass } = useWidthClass();
   const motionScale = useMotionScale();
+  const atmosphere = useAtmosphere();
   const [revealKey, setRevealKey] = useState(0);
 
   const noop = () => {};
@@ -200,6 +221,96 @@ function Gallery() {
             </Card>
           </Reveal>
         </Section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Phase 1 foundations (15) — kabul yüzeyi                             */}
+        {/* ------------------------------------------------------------------ */}
+
+        <Section title="P1 · Font rolleri (15 §5) — TR karakter satırıyla">
+          {APP_TEXT_VARIANTS.map((variant) => (
+            <AppText key={variant} variant={variant}>
+              {variant} · {TR_TEST_STRING}
+            </AppText>
+          ))}
+          <Text role="caption" tone="secondary">
+            roller: display={fontRoles.display} · reading={fontRoles.reading} · quote=
+            {fontRoles.quote} · ceremonial={fontRoles.ceremonial} · ui={fontRoles.ui}
+          </Text>
+        </Section>
+
+        <Section title="P1 · Open chrome paleti (15 §4 — ana UI daima açık)">
+          {CHROME_ENTRIES.map(([name, hex]) => (
+            <View key={name} style={styles.row}>
+              <View style={[styles.swatch, { backgroundColor: hex }]} />
+              <Text role="caption" tone="secondary">
+                chrome.{name} · {hex}
+              </Text>
+            </View>
+          ))}
+        </Section>
+
+        <Section title="P1 · Ekran spec'leri (15 §6-8) — 4 ana tab + 7 alt ekran">
+          {Object.values(allScreenSpecs).map((spec) => (
+            <View
+              key={spec.screenId}
+              style={[styles.specCard, { backgroundColor: spec.backgroundHex }]}>
+              <View style={styles.row}>
+                <View style={[styles.swatch, { backgroundColor: spec.accentHex }]} />
+                <Text role="heading.s">{spec.screenId}</Text>
+              </View>
+              <Text role="caption" tone="secondary">
+                bg {spec.backgroundHex} · pad {spec.horizontalPadding}/{spec.topPadding} · gap{' '}
+                {spec.sectionGap}/{spec.cardGap} · {spec.motionLevel} · anim ≤
+                {spec.maxAnimatedElements}
+              </Text>
+            </View>
+          ))}
+        </Section>
+
+        <Section title="P1 · Visual-panel-only darkness (15 §3-4, scrim zorunlu)">
+          <Text role="caption" tone="secondary">
+            phase={atmosphere.phase} · fixedLight={String(atmosphere.fixedLight)} — krom açık
+            kalır; koyuluk yalnız bu panellerde
+          </Text>
+          {PANEL_KINDS.map((kind) => (
+            <VisualPanel key={kind} kind={kind} minHeight={72}>
+              <View style={styles.panelContent}>
+                <AppText variant="uiLabel" style={{ color: colors.surface.base }}>
+                  VisualPanel · {kind}
+                </AppText>
+              </View>
+            </VisualPanel>
+          ))}
+        </Section>
+
+        <Section title="P1 · Motion limitleri (15 §9)">
+          <Text role="body.s" tone="secondary">
+            maxScale {primitive.motionLimits.maxScale} · pressScale{' '}
+            {primitive.motionLimits.pressScale} · ekran başına ≤
+            {primitive.motionLimits.maxAnimatedElementsPerScreen} animasyonlu öğe
+          </Text>
+          <Text role="body.s" tone="secondary">
+            reduced motion: {String(atmosphere.reducedMotion)} → ambientEnabled=
+            {String(atmosphere.ambient.ambientEnabled)} (açıkken TÜM ambient durur; içerik
+            kaybolmaz)
+          </Text>
+        </Section>
+
+        <Section title="P1 · Free/Pro teaser (15 §14 — contract)">
+          <ProTeaser
+            title="Günün derin okuması"
+            preview="Bugünün temel yorumu ücretsiz: yumuşak bir yenilenme günü."
+            lockedDetailCount={3}
+            ctaLabel="Pro'yu keşfet"
+            onPress={noop}
+          />
+        </Section>
+
+        <Section title="P1 · Safety notice'ları (15 §11-13)">
+          <SymbolicReferenceNotice detail="Örn. Datura — yalnız tarihsel/sembolik bağlamda." />
+          <HealthInformationNotice />
+          <AstrologyInterpretationNotice />
+        </Section>
       </ScrollView>
     </>
   );
@@ -229,4 +340,17 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   stateBox: { height: 400 },
+  swatch: {
+    width: Spacing.four,
+    height: Spacing.four,
+    borderRadius: Radius.sm,
+  },
+  specCard: {
+    gap: Spacing.one,
+    padding: Spacing.two,
+    borderRadius: Radius.md,
+  },
+  panelContent: {
+    padding: Spacing.three,
+  },
 });

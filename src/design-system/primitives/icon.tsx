@@ -13,6 +13,14 @@ import { Text as RNText } from 'react-native';
 
 import { primitive } from '../tokens/primitive.generated';
 
+/**
+ * IconSource — P2 MIGRATION BOUNDARY (Phase 1'de davranış DEĞİŞMEZ).
+ * Phase 2'de 'svg' kaynağı (lucide-react-native + react-native-svg, yeni dev
+ * build) eklenir ve YALNIZ bu dosyanın içi değişir; emoji fallback'e iner.
+ */
+export type IconSource = 'emoji' | 'svg';
+export const ICON_SOURCE: IconSource = 'emoji';
+
 // UI ikon adları → glyph. İçerik-alanı eşlemeleri (ör. gezegen glyph'leri,
 // lib/content.ts PLANET_GLYPH) burada DEĞİL — bu set yalnız arayüz ikonları.
 const GLYPHS = {

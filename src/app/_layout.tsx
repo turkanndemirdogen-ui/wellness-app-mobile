@@ -1,8 +1,18 @@
+import { Caveat_500Medium } from '@expo-google-fonts/caveat';
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
+import { Lora_400Regular, Lora_400Regular_Italic } from '@expo-google-fonts/lora';
+import { PlayfairDisplay_500Medium } from '@expo-google-fonts/playfair-display';
+import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
-import { AppThemeProvider, useTheme } from '@/design-system/theme';
+import { AppThemeProvider, AtmosphereProvider, useTheme } from '@/design-system/theme';
 import { SessionProvider } from '@/lib/auth';
+
+// Font yüklenmeden UI görünmez (layout shift yok — 15 §5 / 03 §21.2).
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /**
  * Kök navigasyon: Stack (Design §8 seviye modeli).
@@ -43,10 +53,29 @@ function RootStack() {
 }
 
 export default function RootLayout() {
+  // 15 §5 rol fontları — rol başına 1-2 kesim (splash bütçesi).
+  const [fontsLoaded, fontError] = useFonts({
+    Fraunces_600SemiBold,
+    Lora_400Regular,
+    Lora_400Regular_Italic,
+    Caveat_500Medium,
+    PlayfairDisplay_500Medium,
+  });
+
+  useEffect(() => {
+    // Hata halinde de aç: sistem fontu fallback'iyle devam (UI kilitlenmez).
+    if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {});
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <SessionProvider>
       <AppThemeProvider>
-        <RootStack />
+        {/* AtmosphereProvider kromu DEĞİŞTİRMEZ — yalnız panel/hero varyantı (15 §3). */}
+        <AtmosphereProvider>
+          <RootStack />
+        </AtmosphereProvider>
       </AppThemeProvider>
     </SessionProvider>
   );
