@@ -14,7 +14,7 @@
  */
 
 import { Component, useEffect, useState, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, TurboModuleRegistry, View } from 'react-native';
+import { ScrollView, StyleSheet, TurboModuleRegistry, UIManager, View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import Animated, {
   cancelAnimation,
@@ -88,10 +88,58 @@ const BUTTON_VARIANTS: ButtonVariant[] = [
   'destructive',
 ];
 
+/**
+ * Galeri native yetenek kapısı — dev-gallery'nin gerektirdiği native view
+ * modülleri ÇALIŞAN client'ta kayıtlı mı? (2026-07-22 çökme dersi: eski dev
+ * client'a deep-link ile düşülünce VisualPanel'in scrim degradesi
+ * "Can't find ViewManager 'ViewManagerAdapter_ExpoLinearGradient'" ile native
+ * mount'ta çöktü — ErrorBoundary native mount çökmesini YAKALAYAMAZ, tek
+ * güvenli yol hiç render etmemek.) Kontroller throw etmez (has/get → false).
+ */
+const MISSING_NATIVES = [
+  {
+    dep: 'expo-linear-gradient (VisualPanel/Ambient scrim)',
+    ok: UIManager.hasViewManagerConfig?.('ViewManagerAdapter_ExpoLinearGradient') ?? false,
+  },
+  {
+    dep: 'react-native-svg (P2 glyph sistemi)',
+    ok: TurboModuleRegistry.get('RNSVGSvgViewModule') != null,
+  },
+].filter((check) => !check.ok);
+
 export default function DevGalleryRoute() {
   // Üretim derlemesinde rota içeriği yok — köke dön.
   if (!__DEV__) return <Redirect href="/" />;
+  if (MISSING_NATIVES.length > 0) return <StaleClientDiagnostic />;
   return <Gallery />;
+}
+
+/** Eski/eksik dev client teşhis ekranı — galeri gövdesi hiç mount edilmez. */
+function StaleClientDiagnostic() {
+  const { colors } = useTheme();
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: true, title: 'dev-gallery' }} />
+      <ScrollView
+        style={{ backgroundColor: colors.surface.canvas }}
+        contentContainerStyle={styles.container}>
+        <Text role="heading.m">ESKİ DEV CLIENT — native modül eksik</Text>
+        {MISSING_NATIVES.map((check) => (
+          <Text key={check.dep} role="body.s" tone="secondary">
+            • {check.dep}: kayıtlı DEĞİL
+          </Text>
+        ))}
+        <Text role="body.s" tone="secondary">
+          Bu uygulama sürümü dev-gallery&apos;nin gerektirdiği native modülleri
+          içermiyor; galeri çökmemek için render edilmedi. Çözüm: cihazdaki TÜM
+          wellness-app dev client kurulumlarını kaldırın, yalnız d86c16fa
+          (commit 3f4739c) build&apos;ini kurun ve galeriye uygulama İÇİNDEN (ana
+          sayfadaki dev-gallery butonu) girin — dış deep link birden fazla
+          kurulum varsa eski uygulamaya gidebilir.
+        </Text>
+      </ScrollView>
+    </>
+  );
 }
 
 function Gallery() {
