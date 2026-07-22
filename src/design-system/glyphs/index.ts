@@ -1,37 +1,83 @@
 /**
- * Glyph sistemi İSKELETİ (05; Phase 1 — yalnız tip sözleşmesi).
+ * Glyph sistemi (05; Phase 2 — 30 özel SVG + dispatcher katmanı).
  *
- * P2 MIGRATION BOUNDARY: SVG içerikleri Phase 2'de gelir (react-native-svg +
- * lucide-react-native bağımlılık onayı + YENİ EAS dev build ile). Bu fazda
- * emoji/Unicode topluca DEĞİŞTİRİLMEZ: Icon primitive'i emoji tablosunda,
- * PLANET_GLYPH (lib/content.ts) Unicode'da kalır; P2'de Unicode fallback'e iner.
+ * P1 iskeleti P2'de dolduruldu: react-native-svg tabanlı monoline set
+ * (viewBox 24, stroke 1.5, currentColor — base.tsx sözleşmesi). Emoji/Unicode
+ * bu fazda topluca DEĞİŞTİRİLMEDİ: Icon primitive'i emoji tablosunda kalır
+ * (Lucide geçişi Phase 3), PLANET_GLYPH (lib/content.ts) Unicode'u artık
+ * yalnız text-fallback statüsündedir; ekran adaptasyonu Phase 4 retrofit'i.
  *
- * Klasör hedef yapısı (P2):
- *   glyphs/planets/*.tsx · glyphs/zodiac/*.tsx · glyphs/moon-phases/*.tsx
+ * Ay fazı: 8 SVG hazır; veri sözleşmesi 4 faz — köprü four-phase-map.ts
+ * (8-faz genişlemesi Adım 6 astro-core ile koordine, checkpoint kalem 10).
  */
 
-export type PlanetGlyphName =
-  | 'sun' | 'moon' | 'mercury' | 'venus' | 'mars'
-  | 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto';
+export {
+  GlyphSvg,
+  GLYPH_VIEWBOX,
+  GLYPH_STROKE_DEFAULT,
+  GLYPH_STROKE_MIN,
+  GLYPH_STROKE_MAX,
+  type GlyphSvgProps,
+} from './base';
 
-export type ZodiacGlyphName =
-  | 'aries' | 'taurus' | 'gemini' | 'cancer' | 'leo' | 'virgo'
-  | 'libra' | 'scorpio' | 'sagittarius' | 'capricorn' | 'aquarius' | 'pisces';
+export {
+  PLANET_GLYPH_NAMES,
+  ZODIAC_GLYPH_NAMES,
+  MOON_PHASE_GLYPH_NAMES,
+  type PlanetGlyphName,
+  type ZodiacGlyphName,
+  type MoonPhaseGlyphName,
+  type GlyphName,
+  type GlyphProps,
+} from './types';
 
-/** 8 faz (05) — mevcut veri sözleşmesi 4 faz üretir; dönüşüm katmanı P2'de. */
-export type MoonPhaseGlyphName =
-  | 'new' | 'waxingCrescent' | 'firstQuarter' | 'waxingGibbous'
-  | 'full' | 'waningGibbous' | 'lastQuarter' | 'waningCrescent';
+export { PlanetGlyph, type PlanetGlyphProps } from './planet-glyph';
+export {
+  ZodiacGlyph,
+  ZODIAC_ELEMENT,
+  type ZodiacGlyphProps,
+  type ZodiacMode,
+  type ZodiacProfileRole,
+  type ZodiacElement,
+} from './zodiac-glyph';
+export { MoonPhaseDataGlyph, type MoonPhaseDataGlyphProps } from './moon-phase-data-glyph';
 
-export type GlyphName = PlanetGlyphName | ZodiacGlyphName | MoonPhaseGlyphName;
+export { fourPhaseToGlyph, type FourPhaseName } from './four-phase-map';
+export {
+  resolveGlyphBreath,
+  GLYPH_BREATH_SCALE,
+  GLYPH_BREATH_DURATION_MS,
+} from './breath';
 
-/** Ortak glyph contract'ı — a11y etiketi dekoratif olmayan her kullanımda ZORUNLU. */
-export type GlyphProps = {
-  name: GlyphName;
-  size?: number;
-  color?: string;
-  /** true → salt süsleme; ekran okuyucudan gizlenir. */
-  decorative?: boolean;
-  /** Dekoratif değilse zorunlu ekran okuyucu etiketi. */
-  label?: string;
-};
+export { SunGlyph } from './planets/SunGlyph';
+export { MoonGlyph } from './planets/MoonGlyph';
+export { MercuryGlyph } from './planets/MercuryGlyph';
+export { VenusGlyph } from './planets/VenusGlyph';
+export { MarsGlyph } from './planets/MarsGlyph';
+export { JupiterGlyph } from './planets/JupiterGlyph';
+export { SaturnGlyph } from './planets/SaturnGlyph';
+export { UranusGlyph } from './planets/UranusGlyph';
+export { NeptuneGlyph } from './planets/NeptuneGlyph';
+export { PlutoGlyph } from './planets/PlutoGlyph';
+
+export { AriesGlyph } from './zodiac/AriesGlyph';
+export { TaurusGlyph } from './zodiac/TaurusGlyph';
+export { GeminiGlyph } from './zodiac/GeminiGlyph';
+export { CancerGlyph } from './zodiac/CancerGlyph';
+export { LeoGlyph } from './zodiac/LeoGlyph';
+export { VirgoGlyph } from './zodiac/VirgoGlyph';
+export { LibraGlyph } from './zodiac/LibraGlyph';
+export { ScorpioGlyph } from './zodiac/ScorpioGlyph';
+export { SagittariusGlyph } from './zodiac/SagittariusGlyph';
+export { CapricornGlyph } from './zodiac/CapricornGlyph';
+export { AquariusGlyph } from './zodiac/AquariusGlyph';
+export { PiscesGlyph } from './zodiac/PiscesGlyph';
+
+export { NewMoon } from './moon-phases/NewMoon';
+export { WaxingCrescent } from './moon-phases/WaxingCrescent';
+export { FirstQuarter } from './moon-phases/FirstQuarter';
+export { WaxingGibbous } from './moon-phases/WaxingGibbous';
+export { FullMoon } from './moon-phases/FullMoon';
+export { WaningGibbous } from './moon-phases/WaningGibbous';
+export { LastQuarter } from './moon-phases/LastQuarter';
+export { WaningCrescent } from './moon-phases/WaningCrescent';

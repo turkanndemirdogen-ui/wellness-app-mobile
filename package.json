@@ -63,7 +63,8 @@
   "jest": {
     "preset": "jest-expo",
     "testMatch": [
-      "<rootDir>/__tests__/**/*.test.ts"
+      "<rootDir>/__tests__/**/*.test.ts",
+      "<rootDir>/__tests__/**/*.test.tsx"
     ],
     "moduleNameMapper": {
       ".(css)$": "<rootDir>/test-utils/style-mock.js",

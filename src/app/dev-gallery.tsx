@@ -13,12 +13,33 @@
  * örnekler shell-copy'deki MEVCUT metinleri yeniden kullanır.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
+import Animated, {
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { Radius, Spacing } from '@/constants/theme';
 import { shellCopy } from '@/content/shell-copy';
+import {
+  fourPhaseToGlyph,
+  GLYPH_BREATH_DURATION_MS,
+  MOON_PHASE_GLYPH_NAMES,
+  MoonPhaseDataGlyph,
+  PLANET_GLYPH_NAMES,
+  PlanetGlyph,
+  resolveGlyphBreath,
+  SunGlyph,
+  ZODIAC_GLYPH_NAMES,
+  ZodiacGlyph,
+  type FourPhaseName,
+  type ZodiacMode,
+} from '@/design-system/glyphs';
 import {
   AstrologyInterpretationNotice,
   Button,
@@ -42,6 +63,7 @@ import { AppText, Divider, Icon, Text, type IconName } from '@/design-system/pri
 import {
   appTextVariants,
   fontRoles,
+  motionEasing,
   textRoles,
   useAtmosphere,
   useTheme,
@@ -311,8 +333,140 @@ function Gallery() {
           <HealthInformationNotice />
           <AstrologyInterpretationNotice />
         </Section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Phase 2 glyph sistemi (05) — kabul yüzeyi                           */}
+        {/* ------------------------------------------------------------------ */}
+
+        <Section title="P2 · Planet glyphleri (05 §6 — planet.* tokenları)">
+          <View style={styles.row}>
+            {PLANET_GLYPH_NAMES.map((planet) => (
+              <View key={planet} style={styles.glyphCell}>
+                <PlanetGlyph planet={planet} size={32} decorative />
+                <Text role="caption" tone="secondary">
+                  {planet}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P2 · Zodiac glyphleri × renk modu (05 §7, 02 §7)">
+          {(['default', 'element', 'profile'] as ZodiacMode[]).map((mode) => (
+            <View key={mode}>
+              <Text role="caption" tone="secondary">
+                mode={mode}
+                {mode === 'profile' ? ' (role=sun)' : ''}
+              </Text>
+              <View style={styles.row}>
+                {ZODIAC_GLYPH_NAMES.map((sign) => (
+                  <View key={sign} style={styles.glyphCell}>
+                    <ZodiacGlyph sign={sign} mode={mode} size={28} decorative />
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+        </Section>
+
+        <Section title="P2 · Ay fazı veri glyphleri — 8 SVG hazır (05 §8)">
+          <View style={styles.row}>
+            {MOON_PHASE_GLYPH_NAMES.map((phase) => (
+              <View key={phase} style={styles.glyphCell}>
+                <MoonPhaseDataGlyph phase={phase} size={28} decorative />
+                <Text role="caption" tone="secondary">
+                  {phase}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P2 · 4→8 faz köprüsü (astro sözleşmesi 4 faz — Adım 6'ya dek)">
+          <View style={styles.row}>
+            {(['yeni', 'ilk_dordun', 'dolunay', 'son_dordun'] as FourPhaseName[]).map((four) => (
+              <View key={four} style={styles.glyphCell}>
+                <MoonPhaseDataGlyph phase={fourPhaseToGlyph[four]} size={28} decorative />
+                <Text role="caption" tone="secondary">
+                  {four} → {fourPhaseToGlyph[four]}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P2 · Boyut merdiveni (05 §3: 14→48 UI · 96 hero)">
+          <View style={styles.row}>
+            {[14, 16, 20, 24, 32, 48, 96].map((size) => (
+              <SunGlyph key={size} size={size} decorative />
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P2 · Active / inactive (05 §11 — outline sabit, renk+vurgu değişir)">
+          <View style={styles.row}>
+            <View style={styles.glyphCell}>
+              <ZodiacGlyph sign="leo" size={28} color={colors.text.secondary} decorative />
+              <Text role="caption" tone="secondary">
+                inactive
+              </Text>
+            </View>
+            <View style={styles.glyphCell}>
+              <ZodiacGlyph sign="leo" size={31} mode="element" decorative />
+              <Text role="caption" tone="secondary">
+                active (~1.1×)
+              </Text>
+            </View>
+          </View>
+        </Section>
+
+        <Section title="P2 · Glyph nefesi (09 breathing · 15 §9 — reduced-motion'da statik)">
+          <GlyphBreathDemo />
+          <Text role="caption" tone="secondary">
+            scale 1.00→1.012 · döngü {GLYPH_BREATH_DURATION_MS}ms×2 · ambientEnabled=
+            {String(atmosphere.ambient.ambientEnabled)} → kapalıysa animasyon YOK (statik glyph;
+            bilgi kaybolmaz) · bu ekranda animasyonlu öğe: 1 (≤2 bütçesi)
+          </Text>
+        </Section>
       </ScrollView>
     </>
+  );
+}
+
+/**
+ * Nefes demosu — resolveGlyphBreath sözleşmesinin görsel kabulü. Ambient
+ * kapalıyken (reduced motion) animasyon hiç KURULMAZ; statik glyph kalır.
+ */
+function GlyphBreathDemo() {
+  const atmosphere = useAtmosphere();
+  const { animate, toScale } = resolveGlyphBreath(atmosphere.ambient.ambientEnabled);
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (animate) {
+      scale.value = withRepeat(
+        withTiming(toScale, {
+          duration: GLYPH_BREATH_DURATION_MS,
+          easing: motionEasing.standard,
+        }),
+        -1,
+        true,
+      );
+    } else {
+      cancelAnimation(scale);
+      scale.value = 1;
+    }
+    return () => cancelAnimation(scale);
+  }, [animate, toScale, scale]);
+
+  const breathStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.breathBox, breathStyle]}>
+      <PlanetGlyph planet="moon" size={48} decorative />
+    </Animated.View>
   );
 }
 
@@ -352,5 +506,14 @@ const styles = StyleSheet.create({
   },
   panelContent: {
     padding: Spacing.three,
+  },
+  glyphCell: {
+    alignItems: 'center',
+    gap: Spacing.half,
+    minWidth: Spacing.six,
+  },
+  breathBox: {
+    alignSelf: 'flex-start',
+    padding: Spacing.two,
   },
 });
