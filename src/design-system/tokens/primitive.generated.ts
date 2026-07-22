@@ -62,6 +62,35 @@ export const primitive = {
       "transparent": "transparent",
       "soft": "rgba(0,0,0,0.35)"
     },
+    "planet": {
+      "sun": "#D5A13C",
+      "moon": "#93A9B8",
+      "mercury": "#6F777D",
+      "venus": "#B7747E",
+      "mars": "#A64F3D",
+      "jupiter": "#4D6F9D",
+      "saturn": "#6C6256",
+      "uranus": "#5B9EB5",
+      "neptune": "#3F6E9D",
+      "pluto": "#60435E"
+    },
+    "zodiac": {
+      "default": {
+        "light": "#5F665E",
+        "dark": "#D9DED6"
+      },
+      "element": {
+        "fire": "#B86A42",
+        "earth": "#738158",
+        "air": "#6D8DA7",
+        "water": "#4F7486"
+      },
+      "profile": {
+        "sun": "#D5A13C",
+        "moon": "#93A9B8",
+        "rising": "#A86643"
+      }
+    },
     "ambient": {
       "morning": "#F8ECD9",
       "day": "#FBF6F3",

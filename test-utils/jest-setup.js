@@ -9,3 +9,27 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 jest.mock('react-native-reanimated', () => ({
   Easing: { bezier: () => () => 0 },
 }));
+
+// react-native-svg native modüldür; paket resmî jest mock'u taşımıyor →
+// prop'ları koruyan host-component mock'u (glyph snapshot/sözleşme testleri
+// path/stroke prop'larını render ağacından okur).
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  const mk = (name) => {
+    const C = ({ children, ...props }) => React.createElement(name, props, children);
+    C.displayName = name;
+    return C;
+  };
+  const Svg = mk('Svg');
+  return {
+    __esModule: true,
+    default: Svg,
+    Svg,
+    Path: mk('Path'),
+    Circle: mk('Circle'),
+    Line: mk('Line'),
+    G: mk('G'),
+    Rect: mk('Rect'),
+    Ellipse: mk('Ellipse'),
+  };
+});
