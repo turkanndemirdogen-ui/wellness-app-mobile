@@ -13,8 +13,8 @@
  * örnekler shell-copy'deki MEVCUT metinleri yeniden kullanır.
  */
 
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Component, useEffect, useState, type ReactNode } from 'react';
+import { ScrollView, StyleSheet, TurboModuleRegistry, View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import Animated, {
   cancelAnimation,
@@ -338,6 +338,7 @@ function Gallery() {
         {/* Phase 2 glyph sistemi (05) — kabul yüzeyi                           */}
         {/* ------------------------------------------------------------------ */}
 
+        <GlyphSectionGuard>
         <Section title="P2 · Planet glyphleri (05 §6 — planet.* tokenları)">
           <View style={styles.row}>
             {PLANET_GLYPH_NAMES.map((planet) => (
@@ -428,9 +429,54 @@ function Gallery() {
             bilgi kaybolmaz) · bu ekranda animasyonlu öğe: 1 (≤2 bütçesi)
           </Text>
         </Section>
+        </GlyphSectionGuard>
       </ScrollView>
     </>
   );
+}
+
+/**
+ * RNSVG native kayıt kontrolü + hata sınırı — SVG native'i kurulu build'de
+ * yoksa (eski dev client) glyph render'ı ViewManagerRegistry /
+ * IllegalViewOperationException ile native tarafta çöker ve jest bunu
+ * YAKALAYAMAZ (mock native kaydı taklit etmez). Guard iki katman:
+ * 1) TurboModule kaydı yoksa glyph bölümleri hiç render edilmez; cihazda
+ *    teşhis metni görünür (hangi build'in kurulu olduğu anlaşılır).
+ * 2) Beklenmedik render hatası ErrorBoundary'de kalır — galeri açık kalır.
+ */
+const svgNativeAvailable = TurboModuleRegistry.get('RNSVGSvgViewModule') != null;
+
+class GlyphSectionGuard extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state: { error: Error | null } = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    if (!svgNativeAvailable) {
+      return (
+        <Section title="P2 · Glyphs — SVG NATIVE KAYDI YOK">
+          <Text role="body.s" tone="secondary">
+            RNSVGSvgViewModule TurboModule kaydı bulunamadı: kurulu dev client
+            react-native-svg İÇERMİYOR (muhtemelen eski build). Build d86c16fa
+            (commit 3f4739c) APK&apos;sını kurup uygulamayı tamamen kapatıp yeniden
+            açın. Glyph bölümleri çökmeyi önlemek için gizlendi.
+          </Text>
+        </Section>
+      );
+    }
+    if (this.state.error) {
+      return (
+        <Section title="P2 · Glyphs — RENDER HATASI (yakalandı)">
+          <Text role="body.s" tone="secondary">
+            {String(this.state.error.message || this.state.error)}
+          </Text>
+        </Section>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 /**
