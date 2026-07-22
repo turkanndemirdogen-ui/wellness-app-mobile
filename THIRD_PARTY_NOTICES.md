@@ -16,3 +16,13 @@ gömme serbesttir; fontların kendisi ayrı satılamaz.
 UI/form/navigasyon sistem fontunu kullanır (gömülü font yok).
 
 Lisans metni: https://openfontlicense.org/ · Kaynak: https://fonts.google.com/
+
+## Grafik kütüphaneleri (Phase 2 — 05 glyph sistemi)
+
+| Paket | Sürüm | Lisans | Rol |
+|---|---|---|---|
+| react-native-svg | 15.15.4 | MIT | Astro glyph SVG render altyapısı (05 §4) |
+| lucide-react-native | 1.25.0 | ISC | UI ikon ailesi (05 §10 kanonik karar; KULLANIM Phase 3'te — bu fazda yalnız bağımlılık) |
+
+Lisans metinleri: react-native-svg https://github.com/software-mansion/react-native-svg/blob/main/LICENSE ·
+Lucide https://github.com/lucide-icons/lucide/blob/main/LICENSE (ISC, © Lucide Contributors)
