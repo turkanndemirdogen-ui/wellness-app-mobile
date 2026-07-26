@@ -68,7 +68,8 @@
     ],
     "moduleNameMapper": {
       ".(css)$": "<rootDir>/test-utils/style-mock.js",
-      "^@/(.*)$": "<rootDir>/src/$1"
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
     },
     "setupFiles": [
       "<rootDir>/test-utils/jest-setup.js"

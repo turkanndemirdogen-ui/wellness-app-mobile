@@ -11,6 +11,6 @@ export { Stack, type StackProps, type SpaceKey } from './stack';
 export { Text, type TextProps, type TextRole, type TextTone } from './text';
 export { AppText, isValidQuoteText, type AppTextProps, type AppTextTone } from './app-text';
 export { ScreenShell, type ScreenShellProps } from './screen-shell';
-export { Icon, ICON_SOURCE, type IconProps, type IconName, type IconSize, type IconSource } from './icon';
+export { Icon, ICON_SOURCE, ICON_NAMES, type IconProps, type IconName, type IconSize, type IconSource } from './icon';
 export { Divider, type DividerProps } from './divider';
 export { Spacer, type SpacerProps } from './spacer';
