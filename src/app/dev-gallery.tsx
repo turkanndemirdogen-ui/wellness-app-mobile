@@ -41,25 +41,37 @@ import {
   type ZodiacMode,
 } from '@/design-system/glyphs';
 import {
+  AppHeader,
   AstrologyInterpretationNotice,
   Button,
   Card,
   EmptyState,
   ErrorState,
+  FilterChip,
   HealthInformationNotice,
   IconButton,
+  InlineNotice,
   ListItem,
   Loader,
+  LoadingState,
   OfflineState,
+  PlantCard,
   ProTeaser,
   Reveal,
+  SearchField,
+  SectionHeader,
   Skeleton,
   SymbolicReferenceNotice,
+  TabItem,
+  TextArea,
+  TextField,
   VisualPanel,
   type ButtonVariant,
+  type InlineNoticeTone,
+  type PlantCardVariant,
 } from '@/design-system/components';
 import { useMotionScale, useWidthClass } from '@/design-system/hooks';
-import { AppText, Divider, Icon, Text, type IconName } from '@/design-system/primitives';
+import { AppText, Divider, Icon, ICON_NAMES, ICON_SOURCE, Text } from '@/design-system/primitives';
 import {
   appTextVariants,
   fontRoles,
@@ -75,7 +87,6 @@ import { primitive } from '@/design-system/tokens/primitive.generated';
 import { allScreenSpecs } from '@/design-system/tokens/screen-specs';
 import { TR_TEST_STRING } from '@/lib/text-tr';
 
-const ICON_NAMES: IconName[] = ['moon', 'crystalBall', 'herb', 'chat', 'seedling', 'sparkles'];
 const TEXT_ROLES = Object.keys(textRoles) as TextRoleName[];
 const APP_TEXT_VARIANTS = Object.keys(appTextVariants) as AppTextVariant[];
 const PANEL_KINDS = Object.keys(primitive.color.visualPanels) as PanelKind[];
@@ -148,6 +159,14 @@ function Gallery() {
   const motionScale = useMotionScale();
   const atmosphere = useAtmosphere();
   const [revealKey, setRevealKey] = useState(0);
+
+  // P3 vitrin durumu — kontrollü input/seçim örnekleri (teknik etiketler).
+  const [fieldValue, setFieldValue] = useState('');
+  const [areaValue, setAreaValue] = useState('');
+  const [searchValue, setSearchValue] = useState('papatya');
+  const [chipSelected, setChipSelected] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
+  const [plantSaved, setPlantSaved] = useState(false);
 
   const noop = () => {};
 
@@ -478,6 +497,154 @@ function Gallery() {
           </Text>
         </Section>
         </GlyphSectionGuard>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Phase 3 core components (07) — kabul yüzeyi                         */}
+        {/* ------------------------------------------------------------------ */}
+
+        <Section title="P3 · UI ikon seti — Lucide SVG geçişi (05 §2)">
+          <Text role="caption" tone="secondary">
+            ICON_SOURCE={ICON_SOURCE} · emoji temsili geride kaldı · API değişmedi
+          </Text>
+          <View style={styles.row}>
+            {ICON_NAMES.map((name) => (
+              <View key={name} style={styles.glyphCell}>
+                <Icon name={name} decorative />
+                <Text role="caption" tone="secondary">
+                  {name}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P3 · AppHeader (07 §3 — light chrome kilidi)">
+          <AppHeader
+            title="Büyük başlık"
+            onBack={noop}
+            backLabel="Geri"
+            actions={[{ label: 'ara', icon: 'search', onPress: noop }]}
+          />
+          <AppHeader
+            title="Küçük başlık · metin eylemi"
+            large={false}
+            actions={[{ label: 'tümü', text: 'Tümü', onPress: noop }]}
+          />
+          <AppHeader
+            title="Disabled eylem"
+            large={false}
+            actions={[{ label: 'ara', icon: 'search', onPress: noop, disabled: true }]}
+          />
+        </Section>
+
+        <Section title="P3 · SectionHeader">
+          <SectionHeader title="Yalnız başlık" />
+          <SectionHeader
+            title="Başlık + alt metin + eylem"
+            subtitle="uiCaption alt satır"
+            action={{ label: 'tümü', text: 'Tümü', onPress: noop }}
+          />
+        </Section>
+
+        <Section title="P3 · TabItem (15 §2 — 4 sekme, presentational; bas → focus)">
+          <View style={styles.row}>
+            {(['moon', 'crystalBall', 'herb', 'chat'] as const).map((icon, i) => (
+              <TabItem
+                key={icon}
+                icon={icon}
+                label={`tab-${i + 1}`}
+                focused={activeTab === i}
+                onPress={() => setActiveTab(i)}
+              />
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P3 · TextField / TextArea — durum matrisi (04 §18)">
+          <TextField
+            label="TextField (default → focus)"
+            value={fieldValue}
+            onChangeText={setFieldValue}
+            placeholder="placeholder label'ı değiştirmez"
+          />
+          <TextField
+            label="Error durumu"
+            value="hatalı değer"
+            onChangeText={noop}
+            error="ikon + metin — renk tek kanal değil"
+          />
+          <TextField label="Disabled" value="salt okunur" onChangeText={noop} disabled />
+          <TextArea
+            label="TextArea (rows=3)"
+            value={areaValue}
+            onChangeText={setAreaValue}
+            rows={3}
+            placeholder="Dynamic Type ile büyür"
+          />
+        </Section>
+
+        <Section title="P3 · SearchField (pill + temizle)">
+          <SearchField
+            label="Arama"
+            value={searchValue}
+            onChangeText={setSearchValue}
+            onClear={() => setSearchValue('')}
+            clearLabel="Aramayı temizle"
+            placeholder="bitki ara"
+          />
+        </Section>
+
+        <Section title="P3 · FilterChip (seçim çok-kanallı; bas → toggle)">
+          <View style={styles.row}>
+            <FilterChip
+              label="interaktif"
+              selected={chipSelected}
+              onPress={() => setChipSelected((s) => !s)}
+            />
+            <FilterChip label="count" count={12} onPress={noop} />
+            <FilterChip label="selected" selected onPress={noop} />
+            <FilterChip label="disabled" disabled onPress={noop} />
+          </View>
+        </Section>
+
+        <Section title="P3 · InlineNotice — 4 ton">
+          {(['info', 'success', 'warning', 'error'] as InlineNoticeTone[]).map((tone) => (
+            <InlineNotice
+              key={tone}
+              tone={tone}
+              title={tone}
+              message="ikon + renk + metin — renk tek kanal değil (15 §10)"
+            />
+          ))}
+        </Section>
+
+        <Section title="P3 · PlantCard — 4 varyant (07 §6: bilimsel ad kilidi)">
+          <Text role="caption" tone="secondary">
+            compact&apos;ta bilimsel ad görünmez ama accessibilityLabel&apos;da TAM okunur ·
+            kaydet: bas → toggle
+          </Text>
+          {(['grid', 'feature', 'list', 'compact'] as PlantCardVariant[]).map((variant) => (
+            <PlantCard
+              key={variant}
+              variant={variant}
+              commonName={`Papatya · ${variant}`}
+              scientificName="Matricaria chamomilla"
+              family="Asteraceae"
+              tags={variant === 'feature' ? ['sakinleştirici', 'çay'] : undefined}
+              toxicityBadge={variant === 'list' ? 'örnek toksisite rozeti' : undefined}
+              onSave={() => setPlantSaved((s) => !s)}
+              saved={plantSaved}
+              saveLabel={plantSaved ? 'Kaydedildi' : 'Kaydet'}
+              onPress={noop}
+            />
+          ))}
+        </Section>
+
+        <Section title="P3 · LoadingState (tam sayfa yükleme; liste için Skeleton)">
+          <View style={styles.stateBox}>
+            <LoadingState label={shellCopy.kesif.loading} />
+          </View>
+        </Section>
       </ScrollView>
     </>
   );
