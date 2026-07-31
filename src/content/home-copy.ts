@@ -107,5 +107,10 @@ export const OPENING_HERB: Herb = {
   gezegen_birincil: 'gunes',
   app_safe: true,
   guven_tier: null,
+  // Gömülü kayıt ağ erişimi olmadan çalışır → uzak görsele bağlanmaz; yüzey
+  // placeholder gösterir (10 §11). Papatya kartı Storage'a girince burada
+  // değil, canlı veriyle gelir.
+  image_path: null,
+  image_version: null,
   data: { tek_satir: 'Geleneksel olarak sakinlik anlarıyla anılır.' },
 };

@@ -13,6 +13,14 @@ export type Herb = {
   /** Günün kartı havuzu filtresi (ana-sayfa-spec B3: havuz daima app_safe). */
   app_safe: boolean | null;
   guven_tier: string | null;
+  /**
+   * Kart görseli — `botanicals` bucket'ı İÇİNDEKİ yol (ör. "papatya/card-01.webp").
+   * TAM URL DEĞİL (10 §10: URL hard-code edilmez, istemcide Storage SDK ile üretilir).
+   * `null` → görsel yok; yüzey placeholder gösterir (10 §11).
+   */
+  image_path: string | null;
+  /** Görsel sürümü; cache anahtarına girer (10 §10). image_path ile birlikte dolar. */
+  image_version: number | null;
   data: {
     tek_satir?: string | null;
     guvenlik?: { uyari_chip?: string | null } | null;
@@ -46,7 +54,7 @@ export async function fetchHerbs(): Promise<Herb[]> {
   if (!supabase) throw new NotConfiguredError();
   const { data, error } = await supabase
     .from('herbs')
-    .select('herb_id,name_tr,gezegen_birincil,app_safe,guven_tier,data')
+    .select('herb_id,name_tr,gezegen_birincil,app_safe,guven_tier,image_path,image_version,data')
     .order('name_tr', { ascending: true });
   if (error) throw error;
   return (data ?? []) as Herb[];
