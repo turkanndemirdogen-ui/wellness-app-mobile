@@ -9,4 +9,10 @@ export {
   type HerbIllustrationProps,
 } from './herb-illustration';
 export { HERB_ILLUSTRATIONS } from './herb-illustration-assets';
+export {
+  HerbImage,
+  HERB_IMAGE_BUCKET,
+  herbImagePublicUrl,
+  type HerbImageProps,
+} from './herb-image';
 export { MoonPhaseGlyph, type MoonPhaseGlyphProps, type MoonPhaseName } from './moon-phase-glyph';

@@ -85,6 +85,8 @@ import {
 } from '@/design-system/theme';
 import { primitive } from '@/design-system/tokens/primitive.generated';
 import { allScreenSpecs } from '@/design-system/tokens/screen-specs';
+import { HerbImage } from '@/domain-ui';
+import { fetchHerbs, type Herb } from '@/lib/content';
 import { TR_TEST_STRING } from '@/lib/text-tr';
 
 const TEXT_ROLES = Object.keys(textRoles) as TextRoleName[];
@@ -645,6 +647,38 @@ function Gallery() {
             <LoadingState label={shellCopy.kesif.loading} />
           </View>
         </Section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Phase 4 — Home retrofit öncüsü: HerbImage (10 §10-§11)             */}
+        {/* ------------------------------------------------------------------ */}
+
+        <Section title="P4 · HerbImage — Storage görseli + 10 §11 yer tutucu">
+          <Text role="caption" tone="secondary">
+            path+version → botanicals public URL (cache anahtarı ?v=N) · path
+            yok → nötr zemin + motif + bilimsel ad + bekliyor etiketi (metin
+            taşır, 15 §10) · koyu zemin YOK (15 §3)
+          </Text>
+          <View style={styles.row}>
+            <View style={styles.herbImageCell}>
+              <HerbImage
+                imagePath="karahindiba/card-01.webp"
+                imageVersion={1}
+                accessibilityLabel="Karahindiba kart görseli"
+              />
+            </View>
+            <View style={styles.herbImageCell}>
+              <HerbImage
+                imagePath={null}
+                imageVersion={null}
+                scientificName="Taraxacum officinale"
+              />
+            </View>
+          </View>
+        </Section>
+
+        <Section title="P4 · Gerçek bitki kartları — fetchHerbs + PlantCard media slotu">
+          <LiveHerbCards />
+        </Section>
       </ScrollView>
     </>
   );
@@ -731,6 +765,75 @@ function GlyphBreathDemo() {
   );
 }
 
+/** Herb.data JSONB'sinden Latince ad (motor tablo `names.la`); yoksa em dash. */
+function herbLatin(herb: Herb): string {
+  const names = herb.data?.names as { la?: string } | undefined;
+  return names?.la ?? '—';
+}
+
+/**
+ * Canlı vitrin: fetchHerbs → görseli olan ilk 4 bitki, PlantCard media
+ * slotunda HerbImage ile. Supabase yapılandırılmamışsa/DB boşsa teşhis metni
+ * gösterir — galeri çökmez (dev-gallery native kapı deseniyle tutarlı).
+ */
+function LiveHerbCards() {
+  const [herbs, setHerbs] = useState<Herb[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchHerbs()
+      .then((h) => alive && setHerbs(h))
+      .catch((e: unknown) => alive && setLoadError(e instanceof Error ? e.message : String(e)));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (loadError) {
+    return (
+      <Text role="body.s" tone="secondary">
+        canlı veri alınamadı: {loadError}
+      </Text>
+    );
+  }
+  if (!herbs) {
+    return (
+      <Text role="body.s" tone="secondary">
+        yükleniyor…
+      </Text>
+    );
+  }
+
+  const withImage = herbs.filter((h) => h.image_path);
+  const shown = (withImage.length ? withImage : herbs).slice(0, 4);
+
+  return (
+    <>
+      <Text role="caption" tone="secondary">
+        {withImage.length}/{herbs.length} bitkide görsel var · ilk 4 gösteriliyor
+        {withImage.length === 0 ? ' (görsel yok → yer tutucu sözleşmesi canlıda)' : ''}
+      </Text>
+      {shown.map((herb) => (
+        <PlantCard
+          key={herb.herb_id}
+          variant="grid"
+          commonName={herb.name_tr ?? herb.herb_id}
+          scientificName={herbLatin(herb)}
+          toxicityBadge={herb.data?.guvenlik?.uyari_chip ?? undefined}
+          media={
+            <HerbImage
+              imagePath={herb.image_path}
+              imageVersion={herb.image_version}
+              scientificName={herbLatin(herb)}
+            />
+          }
+        />
+      ))}
+    </>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
@@ -776,5 +879,12 @@ const styles = StyleSheet.create({
   breathBox: {
     alignSelf: 'flex-start',
     padding: Spacing.two,
+  },
+  // HerbImage vitrin hücresi — kart medya oranı (07 §6 grid: 4:5).
+  herbImageCell: {
+    width: '46%',
+    aspectRatio: 4 / 5,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
   },
 });
