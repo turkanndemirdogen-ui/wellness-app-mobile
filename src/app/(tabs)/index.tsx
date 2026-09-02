@@ -96,7 +96,7 @@ import {
   Surface,
   useScreenHorizontalPadding,
 } from '@/design-system/primitives';
-import { HOME_HERO_HEIGHT, homeSpec } from '@/design-system/tokens/screen-specs';
+import { homeSpec } from '@/design-system/tokens/screen-specs';
 import { useTheme } from '@/design-system/theme';
 
 function formatDayTitle(d: Date): string {
@@ -110,8 +110,9 @@ export default function AnaSayfaScreen() {
   const { height: windowHeight } = useWindowDimensions();
   const screenPadding = useScreenHorizontalPadding(homeSpec);
 
-  // Hero ekranın üst ~%40'ı; 15 §7'nin heroHeight'i (280) TABAN olarak korunur.
-  const heroHeight = Math.max(HOME_HERO_HEIGHT, Math.round(windowHeight * 0.4));
+  // Hero GÖRSELİ ekranın üst ~%30'u (katmansız yön, 2026-09-02). Altındaki krem
+  // künye şeridi bu yüksekliğe dahil değildir — o kendi içeriğince uzar.
+  const heroImageHeight = Math.round(windowHeight * 0.3);
   const [refreshing, setRefreshing] = useState(false);
 
   const dateKey = todayKey();
@@ -277,12 +278,11 @@ export default function AnaSayfaScreen() {
         <Reveal>
           <View style={styles.heroBlock}>
             <DailyHerbHero
-              herbId={herb.herb_id}
               commonName={herbName}
               scientificName={herbSci}
               imagePath={herb.image_path}
               imageVersion={herb.image_version}
-              height={heroHeight}
+              imageHeight={heroImageHeight}
               topInset={insets.top}
               dateLabel={formatDayTitle(new Date())}
               moonChip={
@@ -318,8 +318,8 @@ export default function AnaSayfaScreen() {
         // İskelet: hero panelin geometrisiyle birebir (§36, yerleşim sıçramaz).
         <View style={styles.heroBlock}>
           <Skeleton
-            height={heroHeight}
-            radius="xl"
+            height={heroImageHeight}
+            radius="none"
             style={{ marginHorizontal: -screenPadding }}
           />
           <Skeleton textVariant="reading" width="85%" />

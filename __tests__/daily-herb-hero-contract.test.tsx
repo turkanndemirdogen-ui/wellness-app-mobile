@@ -6,7 +6,8 @@
  * - Erişilebilirlik etiketi iki adı da taşır; panel TEK basılabilir yüzeydir
  *   (§25: küçük hassas iç hedef yok).
  * - Storage görseli yokken panel çökmez: nötr yer tutucu + durum metni (10 §11).
- * - Panel ekran sözleşmesinin hero yüksekliğini kullanır (15 §7).
+  it('gorsel yuksekligi cagirandan gelir (ekranin ust ~%30u)', () => {
+ * - Hero KATMANSIZ: görselin üstünde vinyet/sis/ışık/bulut/gölge yok.
  */
 
 import TestRenderer, { act } from 'react-test-renderer';
@@ -41,12 +42,11 @@ const LABEL = `Günün bitkisi: ${COMMON}, ${SCI}`;
 function hero(imagePath: string | null) {
   return (
     <DailyHerbHero
-      herbId="lavanta"
       commonName={COMMON}
       scientificName={SCI}
       imagePath={imagePath}
       imageVersion={imagePath ? 1 : null}
-      height={HOME_HERO_HEIGHT}
+      imageHeight={HOME_HERO_HEIGHT}
       accessibilityLabel={LABEL}
       onPress={() => {}}
       testID="hero"
@@ -74,13 +74,25 @@ describe('DailyHerbHero', () => {
     expect(visibleText(render(hero(null)))).toContain('bekliyor');
   });
 
-  it('panel yüksekliği ekran sözleşmesinden gelir (15 §7)', () => {
-    const tree = render(hero(null));
-    const flat = ([] as unknown[]).concat(tree.props.style as unknown[]).flat(3);
-    const heights = flat
-      .filter((s): s is { height?: number } => typeof s === 'object' && s !== null)
-      .map((s) => s.height)
-      .filter((h) => typeof h === 'number');
+  it('gorsel yuksekligi cagirandan gelir (ekranin ust ~%30u)', () => {
+    // Yükseklik artık kökte değil, paralaks taşmasını kırpan görsel
+    // penceresinde — ağacın tamamında aranır.
+    const heights: number[] = [];
+    const walk = (node: Node | Node[]): void => {
+      if (node == null || typeof node === 'string') return;
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
+      const styles = ([] as unknown[]).concat(node.props?.style as unknown[]).flat(4);
+      for (const style of styles) {
+        if (style && typeof style === 'object' && typeof (style as { height?: unknown }).height === 'number') {
+          heights.push((style as { height: number }).height);
+        }
+      }
+      (node.children ?? []).forEach(walk);
+    };
+    walk(render(hero(null)));
     expect(heights).toContain(HOME_HERO_HEIGHT);
   });
 });

@@ -112,10 +112,10 @@ export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DE
      */
     glow: m.glow,
     /**
-     * Hero atmosferi (15 §3 izinli koyuluk: "hero görsel paneli"). Bu değerler
-     * KROMA sızamaz — yalnız DailyHerbHero'nun scrim katmanı tüketir.
+     * Hero şeridi — görselin ALTINDAKİ açık krem bant. Hero katmansız olduğu
+     * için metin/zemin kontrastı görselden bağımsızdır (bkz. heroStrip token'ı).
      */
-    heroAtmosphere: m.heroAtmosphere,
+    heroStrip: m.heroStrip,
     /** Zemin lila-krem tonlaması (Büyülü yönü) — koyulaşma değil, tonlama. */
     ambientTint: m.ambientTint,
     /** Doku opaklıkları (04 §17.2). */

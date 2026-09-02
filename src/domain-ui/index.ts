@@ -14,16 +14,11 @@ export {
   HeroChip,
   HeroMoonChip,
   heroChipTextColor,
-  resolveCloudAlpha,
   type DailyHerbHeroProps,
 } from './daily-herb-hero';
-export {
-  HERB_HERO_LUMA,
-  HERO_TEXT_AA,
-  HERO_PLACEHOLDER_CLOUD_ALPHA,
-  HERO_PLACEHOLDER_CONTRAST,
-  type HerbHeroLuma,
-} from './herb-hero-luma.generated';
+// NOT: herb-hero-luma.generated.ts UYKUDA — hero katmansız olduğu için metin
+// artık görselin üstünde değil. Dosya silinmedi (yerleşim geri dönerse ölçüm
+// hattıyla birlikte açılır); buradan dışa verilmiyor ki ölü bağımlılık doğmasın.
 export {
   HerbImage,
   HERB_IMAGE_BUCKET,

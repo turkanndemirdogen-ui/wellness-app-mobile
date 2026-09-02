@@ -19,10 +19,12 @@ import {
   type ThemeRule,
 } from '@/lib/home';
 
-const herb = (id: string, appSafe: boolean, uyari?: string): Herb =>
+const herb = (id: string, appSafe: boolean, uyari?: string, image = false): Herb =>
   ({
     herb_id: id,
     app_safe: appSafe,
+    image_path: image ? `${id}/card-01.webp` : null,
+    image_version: image ? 1 : null,
     data: uyari ? { guvenlik: { uyari_chip: uyari } } : {},
   }) as unknown as Herb;
 
@@ -98,6 +100,40 @@ describe('Home B1-B6 karakterizasyonu (preservation map)', () => {
       { aspect_quality: null, natal_target: 'sun' },
     ] as Parameters<typeof transitOnlyEvents>[0];
     expect(transitOnlyEvents(events)).toHaveLength(1);
+  });
+
+  test('B3: havuz önce GÖRSELİ OLANLARA daralır (katmansız hero, 2026-09-02)', () => {
+    // Hero artık düpedüz bitki fotoğrafı; görselsiz seçim ekranın üst üçte
+    // birini boş yer tutucu kutusuna çevirir. Ürün sahibi kararıyla havuz
+    // görselli bitkilerle sınırlandı.
+    const mixed: Herb[] = [
+      herb('papatya', true),
+      herb('lavanta', true, undefined, true),
+      herb('nane', true, undefined, true),
+    ];
+    const picks = new Set(
+      ['2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05', '2026-09-06'].map(
+        (d) => pickDailyHerb(mixed, d)?.herb_id,
+      ),
+    );
+    expect(picks.has('papatya')).toBe(false);
+    for (const id of picks) expect(['lavanta', 'nane']).toContain(id);
+  });
+
+  test('B3: görselli bitki YOKSA eski havuza düşer — ekran boş kalmaz', () => {
+    const noneImaged = pickDailyHerb(HERBS, '2026-09-02');
+    expect(noneImaged).not.toBeNull();
+    expect(['kantaron', 'gizli']).not.toContain(noneImaged?.herb_id);
+  });
+
+  test('B3: görsel koşulu güvenlik filtresini GEVŞETMEZ', () => {
+    // Uyarı çipli bir bitkinin görseli olsa bile günün kartına giremez.
+    const risky: Herb[] = [
+      herb('kantaron', true, 'T2', true),
+      herb('gizli', false, undefined, true),
+      herb('papatya', true),
+    ];
+    expect(pickDailyHerb(risky, '2026-09-02')?.herb_id).toBe('papatya');
   });
 
   test('B5: global günlük deterministik söz; boş havuz → null (sahte aktivasyon yok)', () => {

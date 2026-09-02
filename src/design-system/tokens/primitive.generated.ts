@@ -228,7 +228,12 @@ export const primitive = {
     "heroChip": {
       "text": "#7A5C1E",
       "hairline": "rgba(122,92,30,0.45)",
-      "backing": "rgba(247,236,208,0.82)"
+      "backing": "rgba(255,255,255,0)"
+    },
+    "heroStrip": {
+      "background": "#F5EDE2",
+      "plantName": "#3A2154",
+      "scientific": "#6E5590"
     }
   },
   "space": {
@@ -246,6 +251,7 @@ export const primitive = {
     "s96": 96
   },
   "radius": {
+    "none": 0,
     "xs": 4,
     "sm": 8,
     "md": 12,

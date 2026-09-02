@@ -1,21 +1,21 @@
 /**
- * KABUL KRİTERİ TESTİ — hero metin okunurluğu (ürün sahibi, 2026-09-02).
+ * UYKUDA — KABUL KRİTERİ TESTİ (hero metin okunurluğu).
  *
- * "11 canlı bitki görselinin HEPSİNDE, metin alanındaki en açık piksel ile
- *  beyaz yazı arasında en az 4.5:1 kontrast. Bunu kalıcı teste bağla; yeni
- *  görsel eklendiğinde eşiği geçemezse kırmızıya dönsün."
+ * NEDEN DEVRE DIŞI (2026-09-02, ürün sahibi kararı): hero KATMANSIZ hale geldi.
+ * Bitki adı ve bilimsel ad artık fotoğrafın ÜSTÜNDE değil, görselin ALTINDAKİ
+ * opak krem şeritte duruyor. Metin görsel pikselleriyle hiç karşılaşmadığı için
+ * "metin alanındaki en açık piksel" diye bir ölçü kalmadı — bu kapı konusuz.
+ * Yerini `hero-strip-contrast` aldı: metin/zemin çiftleri token seviyesinde
+ * doğrulanıyor, ölçüme gerek yok çünkü zemin sabit.
  *
- * Ölçüm jest'te yapılmaz (WebP çözmek gerekir): `python
- * scripts/measure-hero-contrast.py` gerçek pikselleri okur, katmanları
- * bindirir, gereken bulut gücünü çözer ve sonucu
- * `herb-hero-luma.generated.ts` + `content/bitki-gorselleri.json` içine yazar.
+ * NEDEN SİLİNMEDİ: yerleşim ileride görsel-üstü metne dönerse bu kapı ve onu
+ * besleyen ölçüm hattı (scripts/measure-hero-contrast.py, `npm run
+ * check:hero-contrast`) olduğu gibi geri açılır. Açmak için: aşağıdaki
+ * `describe.skip` çağrılarını `describe` yap, hero'ya katmanları geri koy ve
+ * ölçümü yeniden koş (token parmak izi testi bayat ölçümü zaten yakalar).
  *
- * Bu test o ölçümün BEKÇİSİDİR ve üç şeyi bağlar:
- *  1. Varlık kaydındaki her görselin ölçümü var mı (yeni görsel ölçülmeden
- *     eklenemez),
- *  2. Ölçülen kontrastların hepsi eşiği geçiyor mu,
- *  3. Ölçümün yapıldığı katman değerleri BUGÜNKÜ token'larla aynı mı — vinyet,
- *     sis ya da bulut değeri değişip ölçüm bayatlarsa test kırmızıya döner.
+ * Ölçüm verisi (`herb-hero-luma.generated.ts`) da yerinde duruyor ama hiçbir
+ * bileşen onu okumuyor.
  */
 
 import { readFileSync } from 'node:fs';
@@ -28,7 +28,6 @@ import {
   HERO_PLACEHOLDER_CONTRAST,
   HERO_TEXT_AA,
 } from '@/domain-ui/herb-hero-luma.generated';
-import { resolveCloudAlpha } from '@/domain-ui/daily-herb-hero';
 import { primitive } from '@/design-system/tokens/primitive.generated';
 
 type AssetRecord = { herb_id: string; path: string; version: number };
@@ -39,7 +38,11 @@ function assetRecords(): AssetRecord[] {
   return JSON.parse(String(raw)).gorseller as AssetRecord[];
 }
 
-describe('hero metin kontrastı — kabul kriteri', () => {
+/** Uyuyan blok derlenebilir kalsın diye yerel yer tutucu (çalıştırılmaz). */
+const resolveCloudAlpha = (_herbId: string, hasImage: boolean): number =>
+  hasImage ? 0 : HERO_PLACEHOLDER_CLOUD_ALPHA;
+
+describe.skip('hero metin kontrastı — kabul kriteri (UYKUDA)', () => {
   it('varlık kaydındaki HER görselin ölçümü var (ölçülmemiş görsel eklenemez)', () => {
     const missing = assetRecords()
       .map((r) => r.herb_id)
@@ -89,7 +92,7 @@ describe('hero metin kontrastı — kabul kriteri', () => {
   });
 });
 
-describe('ölçüm tazeliği — katman değerleri değişirse ölçüm bayatlar', () => {
+describe.skip('ölçüm tazeliği — katman değerleri değişirse ölçüm bayatlar (UYKUDA)', () => {
   it('ölçümün yapıldığı vinyet/sis/bulut değerleri bugünkü token’larla aynı', () => {
     const live: Record<string, string | number> = {
       ...primitive.material.heroAtmosphere,

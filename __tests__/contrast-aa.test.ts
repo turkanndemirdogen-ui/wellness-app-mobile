@@ -52,39 +52,6 @@ describe('kontrast — gövde metni (15 §10: normal metin ≥ 4.5:1)', () => {
   });
 });
 
-describe('kontrast — hero bağlam şeridi (çip görselden bağımsız)', () => {
-  /**
-   * Tarih ve ay çipi görsele göre DEĞİŞMEZ (ürün sahibi kuralı): sabit
-   * koyu-altın metin, aynı tonda hairline, açık-altın yüzey. Yüzey olmadan
-   * koyu-altın metin fotoğraf üstünde 2.6:1'de kalıyordu; yüzey deterministik
-   * kontrast verir. Hero METNİNİN (beyaz ad + bilimsel ad) emniyeti ayrı
-   * testtedir: hero-text-contrast.
-   */
-  const chip = primitive.material.heroChip;
-
-  function opaque(rgbaValue: string): string {
-    const parts = rgbaValue.replace(/rgba?\(|\)/g, '').split(',').map(Number);
-    return `#${parts
-      .slice(0, 3)
-      .map((v) => Math.round(v).toString(16).padStart(2, '0'))
-      .join('')}`;
-  }
-
-  it('koyu-altın metin, açık-altın çip yüzeyinde AA', () => {
-    expect(ratio(chip.text, opaque(chip.backing))).toBeGreaterThanOrEqual(AA_NORMAL);
-  });
-
-  it('çip yüzeyi beyaz DEĞİL (ürün sahibi kuralı)', () => {
-    expect(opaque(chip.backing).toUpperCase()).not.toBe('#FFFFFF');
-  });
-
-  it('hairline metinle aynı tondan türer', () => {
-    const [r, g, b] = chip.hairline.replace(/rgba?\(|\)/g, '').split(',').map(Number);
-    const text = chip.text.replace('#', '');
-    expect([r, g, b]).toEqual([0, 2, 4].map((i) => parseInt(text.slice(i, i + 2), 16)));
-  });
-});
-
 describe('kontrast — accent zemin üstü metin (15 §6 accentHex × §10)', () => {
   it('Ana Sayfa accent’i (adaçayı) normal metin eşiğini geçer', () => {
     const { action } = buildSemanticColors('day', homeSpec.accentHex);

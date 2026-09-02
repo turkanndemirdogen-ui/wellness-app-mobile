@@ -741,18 +741,17 @@ function Gallery() {
 
         <Section title="P4 · DailyHerbHero — Home hero'su (görselli / görselsiz)">
           <Text role="caption" tone="secondary">
-            tam genişlik görsel + paralaks + atmosferik scrim (patlıcan →
-            indigo → gece) + nefes alan altın ışık huzmesi · adlar doğrudan
-            scrim üzerinde; alt durak %90 opak olduğu için kontrast alttaki
-            görselden bağımsız (en kötü hâl testte)
+            KATMANSIZ: görselin üstünde vinyet/sis/ışık/bulut YOK · adlar
+            fotoğrafın ALTINDAKİ krem şeritte (koyu patlıcan Cinzel + açık mor
+            Jost italik) · kontrast görselden tamamen bağımsız, token seviyesinde
+            doğrulanmış · tek hareket paralaks
           </Text>
           <DailyHerbHero
-            herbId="lavanta"
             commonName="Lavanta"
             scientificName="Lavandula angustifolia"
             imagePath="lavanta/card-01.webp"
             imageVersion={1}
-            height={HOME_HERO_HEIGHT}
+            imageHeight={HOME_HERO_HEIGHT}
             dateLabel="2 Eylül, Çarşamba"
             moonChip={
               <HeroMoonChip>
@@ -766,12 +765,11 @@ function Gallery() {
             onPress={noop}
           />
           <DailyHerbHero
-            herbId="papatya"
             commonName="Papatya"
             scientificName="Matricaria chamomilla"
             imagePath={null}
             imageVersion={null}
-            height={HOME_HERO_HEIGHT}
+            imageHeight={HOME_HERO_HEIGHT}
             accessibilityLabel="Günün bitkisi: Papatya, Matricaria chamomilla"
           />
         </Section>

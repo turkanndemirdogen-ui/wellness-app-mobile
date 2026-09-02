@@ -97,17 +97,34 @@ export async function fetchHomeDaily(events: EngineEvent[]): Promise<HomeDaily> 
   };
 }
 
+/** Bitkinin gösterilebilir bir Storage görseli var mı (10 §10). */
+function hasCardImage(herb: Herb): boolean {
+  return Boolean(herb.image_path) && (herb.image_version ?? 0) >= 1;
+}
+
 /**
  * B3 — günün bitki kartı seçimi. Havuz kuralı (spec): daima app_safe; uyarı
  * çipli (T1–T3) bitkiler Keşif'te yaşar, günün kartına GİRMEZ. Sıralama
  * herb_id ile sabitlenir (fetch sırasından bağımsız determinizm).
+ *
+ * GÖRSEL KOŞULU (ürün sahibi kararı, 2026-09-02): hero artık katmansız, düpedüz
+ * bitki fotoğrafıdır — görseli olmayan bitki seçilirse ekranın üst üçte biri boş
+ * bir yer tutucu kutusu olur. Bu yüzden havuz önce GÖRSELİ OLANLARA daraltılır.
+ * Ölçüldü (npm run db:check:hero): 35 bitkilik güvenli havuzun yalnız 9'unda
+ * görsel var; daraltma olmadan günlerin ~%74'ünde yer tutucu çıkıyordu.
+ *
+ * Daraltma GÜVENLİ tarafa düşer: görselli hiçbir bitki yoksa (yeni kurulum,
+ * eksik seed) eski havuza geri döner — ekran boş kalmaktansa yer tutucuyla
+ * çalışır. Görseller üretildikçe havuz kendiliğinden genişler.
  */
 export function pickDailyHerb(herbs: Herb[] | null, dateKey: string): Herb | null {
   if (!herbs || herbs.length === 0) return null;
-  const pool = herbs
+  const safePool = herbs
     .filter((h) => h.app_safe === true && !h.data?.guvenlik?.uyari_chip)
     .sort((a, b) => a.herb_id.localeCompare(b.herb_id));
-  if (pool.length === 0) return null;
+  if (safePool.length === 0) return null;
+  const imaged = safePool.filter(hasCardImage);
+  const pool = imaged.length > 0 ? imaged : safePool;
   return pool[hashDateKey(dateKey) % pool.length];
 }
 
