@@ -21,6 +21,7 @@ import {
   Moon,
   Orbit,
   Search,
+  Share2,
   Sparkles,
   Sprout,
   X,
@@ -57,6 +58,7 @@ const ICONS = {
   check: Check,
   bookmark: Bookmark,
   savedBookmark: BookmarkCheck,
+  share: Share2,
 };
 
 export type IconName = keyof typeof ICONS;

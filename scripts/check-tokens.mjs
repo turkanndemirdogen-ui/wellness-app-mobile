@@ -79,6 +79,10 @@ const ALLOWLIST = new Map([
     { rules: new Set(['*']), reason: 'üretilmiş token çıktısı — tek kaynak tokens.json' },
   ],
   [
+    'design-system/theme/elevation.ts',
+    { rules: new Set(['shadow']), reason: 'token → RN gölge/glow köprüsü (04 §9-10; tek kurulum noktası)' },
+  ],
+  [
     'design-system/theme/motion.ts',
     { rules: new Set(['easing']), reason: 'token → Reanimated easing köprüsü (tek kurulum noktası)' },
   ],

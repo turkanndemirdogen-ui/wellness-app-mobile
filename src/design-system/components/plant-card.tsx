@@ -19,7 +19,7 @@ import { View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { AppText, Icon, Surface } from '../primitives';
 import { primitive } from '../tokens/primitive.generated';
-import { useTheme } from '../theme';
+import { shadowStyle, useTheme, type ShadowLevel } from '../theme';
 import { IconButton } from './button';
 import { AnimatedPressable, usePressFeedback } from './use-press-feedback';
 
@@ -182,12 +182,9 @@ export function PlantCard({
   );
 
   const cardRadius = variant === 'feature' ? primitive.radius.xl : primitive.radius.lg;
-  const elevation =
-    variant === 'feature'
-      ? primitive.elevation.level2
-      : variant === 'list' || variant === 'compact'
-        ? primitive.elevation.level0
-        : primitive.elevation.level1;
+  // 04 §9.3: tekrar eden satırlarda (list/compact) gölge YOK — yalnız kenar.
+  const shadow: ShadowLevel | null =
+    variant === 'feature' ? 'card' : variant === 'grid' ? 'soft' : null;
 
   const containerStyle: StyleProp<ViewStyle> = [
     baseContainer,
@@ -195,9 +192,11 @@ export function PlantCard({
       flexDirection: cfg.direction,
       backgroundColor: colors.surface.card,
       borderRadius: cardRadius,
+      borderWidth: primitive.borderWidth.thin,
+      borderColor: colors.border.hairline,
       padding: variant === 'compact' ? primitive.space.s12 : primitive.space.s16,
-      elevation,
     },
+    shadow ? shadowStyle(shadow) : null,
     disabled ? { opacity: primitive.opacity.disabled } : null,
     style,
   ];

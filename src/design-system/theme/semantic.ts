@@ -30,6 +30,7 @@ import { bestTextOn } from './contrast';
 export type TimeOfDay = keyof typeof primitive.color.ambient;
 
 const c = primitive.color.chrome;
+const m = primitive.material;
 
 /** Ekran sözleşmesi accent vermezse kullanılan varsayılan (15 §7 home accent). */
 export const DEFAULT_ACCENT = primitive.color.botanical.sage;
@@ -45,6 +46,20 @@ export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DE
       selected: c.surfaceTint,
       /** Pudra rozet/çip zemini (15 §3 "powder blush"); koyu metinle 10.7:1. */
       powder: c.powder,
+      /**
+       * Editoryal kâğıt yüzeyi (04 §12.2 quiet / §12.4 journal ruhu) — söz,
+       * günlük, uzun okuma gibi "kâğıt" blokları beyaz karttan ayırır;
+       * ekrandaki kartlar yalnız renkle değil MALZEMEYLE çeşitlenir (01 §11.3).
+       */
+      parchment: c.parchment,
+      /**
+       * Cam yüzeyler (04 §5) — ÖN-TONLANMIŞ hâl: gerçek blur yerine alfa'lı
+       * tint (04 §6.3 Reduce-Transparency yolu). Gövde metni taşıyan camın
+       * opaklığı ≥ 0.78 (04 §5.1) → koyu metin AA'da kalır.
+       */
+      glassMist: m.glass.mist.tint,
+      glassFrost: m.glass.frost.tint,
+      glassDeep: m.glass.deepFrost.tint,
     },
     /**
      * Ambient grubu (§45 semantic seti; §11.5): ekran üstünün yumuşak ışık
@@ -67,7 +82,25 @@ export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DE
     border: {
       subtle: c.border,
       strong: c.textPrimary,
+      /** Mürekkep kenarları (04 §7.1) — kartın düzlüğünü kıran 1px tanım. */
+      hairline: m.borderTone.hairline,
+      soft: m.borderTone.soft,
+      medium: m.borderTone.medium,
+      /** Cam kenarı: camın üstündeki ışık çizgisi (04 §5, §7.3). */
+      glass: m.glassBorder.frost,
+      glassSoft: m.glassBorder.mist,
     },
+    /** İç ışık (04 §11) — 1px üst kenar / yumuşak radial yıkama. */
+    highlight: {
+      light: m.innerHighlight.light,
+      soft: m.innerHighlight.soft,
+      gold: m.innerHighlight.gold,
+    },
+    /**
+     * Glow (04 §10) — ana elevation yöntemi DEĞİL: yalnız selected/active/
+     * celestial/ceremonial durumda, viewport başına en fazla 2 kaynak.
+     */
+    glow: m.glow,
     action: {
       /** Primary buton zemini / vurgu eylem rengi — ekran accent'i. */
       primary: accentHex,

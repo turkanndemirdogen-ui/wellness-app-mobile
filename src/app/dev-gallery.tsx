@@ -71,11 +71,21 @@ import {
   type PlantCardVariant,
 } from '@/design-system/components';
 import { useMotionScale, useWidthClass } from '@/design-system/hooks';
-import { AppText, Divider, Icon, ICON_NAMES, ICON_SOURCE, Text } from '@/design-system/primitives';
+import {
+  AppText,
+  Divider,
+  Icon,
+  ICON_NAMES,
+  ICON_SOURCE,
+  Surface,
+  Text,
+} from '@/design-system/primitives';
 import {
   appTextVariants,
   fontRoles,
+  glowStyle,
   motionEasing,
+  shadowStyle,
   textRoles,
   useAtmosphere,
   useTheme,
@@ -84,8 +94,8 @@ import {
   type TextRoleName,
 } from '@/design-system/theme';
 import { primitive } from '@/design-system/tokens/primitive.generated';
-import { allScreenSpecs } from '@/design-system/tokens/screen-specs';
-import { HerbImage } from '@/domain-ui';
+import { allScreenSpecs, HOME_HERO_HEIGHT } from '@/design-system/tokens/screen-specs';
+import { DailyHerbHero, HerbImage } from '@/domain-ui';
 import { fetchHerbs, type Herb } from '@/lib/content';
 import { herbLatin } from '@/lib/home';
 import { TR_TEST_STRING } from '@/lib/text-tr';
@@ -680,6 +690,79 @@ function Gallery() {
         <Section title="P4 · Gerçek bitki kartları — fetchHerbs + PlantCard media slotu">
           <LiveHerbCards />
         </Section>
+
+        <Section title="P4 · Materyal — cam seviyeleri (04 §5, ön-tonlanmış)">
+          <Text role="caption" tone="secondary">
+            gerçek blur yerine tintAlpha (04 §6.3 Reduce-Transparency yolu) ·
+            gövde metni taşıyan camda opaklık ≥ 0.78 · kenar = beyaz ışık
+            çizgisi · nested glass YASAK
+          </Text>
+          {(['glassMist', 'glassFrost', 'glassDeep'] as const).map((role) => (
+            <Surface key={role} role={role} radius="lg" bordered style={styles.materialBox}>
+              <AppText variant="uiLabel">{role}</AppText>
+              <AppText variant="uiCaption" tone="secondary">
+                Bu metin cam üstünde okunur kalmalı.
+              </AppText>
+            </Surface>
+          ))}
+        </Section>
+
+        <Section title="P4 · Materyal — gölge merdiveni ve glow (04 §9-§10)">
+          <Text role="caption" tone="secondary">
+            gölge: soft (standart kart) · card (feature/hero) · elevated (modal) ·
+            glow yalnız selected/active/celestial/ceremonial, viewport başına
+            en fazla 2 kaynak &mdash; iOS&apos;ta halo, Android&apos;de
+            elevation-siz no-op
+          </Text>
+          <View style={styles.row}>
+            {(['soft', 'card', 'elevated'] as const).map((level) => (
+              <Surface
+                key={level}
+                role="card"
+                radius="lg"
+                bordered
+                style={[styles.materialSwatch, shadowStyle(level)]}>
+                <AppText variant="uiCaption">{level}</AppText>
+              </Surface>
+            ))}
+          </View>
+          <View style={styles.row}>
+            {(['botanical', 'selection', 'celestial', 'ceremonial'] as const).map((name) => (
+              <Surface
+                key={name}
+                role="card"
+                radius="lg"
+                style={[styles.materialSwatch, glowStyle(name)]}>
+                <AppText variant="uiCaption">{name}</AppText>
+              </Surface>
+            ))}
+          </View>
+        </Section>
+
+        <Section title="P4 · DailyHerbHero — Home hero'su (görselli / görselsiz)">
+          <Text role="caption" tone="secondary">
+            full-bleed görsel + paralaks + nefes alan ambient ışık + mürekkep
+            scrim + cam plaka · metin görselin üstünde serbest durmaz, kendi
+            açık yüzeyinde durur (kontrast deterministik)
+          </Text>
+          <DailyHerbHero
+            commonName="Lavanta"
+            scientificName="Lavandula angustifolia"
+            imagePath="lavanta/card-01.webp"
+            imageVersion={1}
+            height={HOME_HERO_HEIGHT}
+            accessibilityLabel="Günün bitkisi: Lavanta, Lavandula angustifolia"
+            onPress={noop}
+          />
+          <DailyHerbHero
+            commonName="Papatya"
+            scientificName="Matricaria chamomilla"
+            imagePath={null}
+            imageVersion={null}
+            height={HOME_HERO_HEIGHT}
+            accessibilityLabel="Günün bitkisi: Papatya, Matricaria chamomilla"
+          />
+        </Section>
       </ScrollView>
     </>
   );
@@ -875,6 +958,16 @@ const styles = StyleSheet.create({
   breathBox: {
     alignSelf: 'flex-start',
     padding: Spacing.two,
+  },
+  // Materyal vitrin kutuları — cam/gölge/glow token'ları izole görünsün.
+  materialBox: {
+    padding: Spacing.three,
+    gap: Spacing.half,
+  },
+  materialSwatch: {
+    minWidth: Spacing.six + Spacing.four,
+    padding: Spacing.three,
+    alignItems: 'center',
   },
   // HerbImage vitrin hücresi — kart medya oranı (07 §6 grid: 4:5).
   herbImageCell: {

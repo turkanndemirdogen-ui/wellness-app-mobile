@@ -72,6 +72,9 @@ export function assertScreenSpec(spec: ScreenVisualSpec): ScreenVisualSpec {
 // Ana tablar (15 §7 — değerler birebir kilitli)
 // ---------------------------------------------------------------------------
 
+/** Ana Sayfa hero panel yüksekliği (15 §7) — tipte opsiyonel olduğu için ayrıca dışa açılır. */
+export const HOME_HERO_HEIGHT = 280;
+
 export const homeSpec: ScreenVisualSpec = assertScreenSpec({
   screenId: 'home',
   backgroundHex: chrome.background,
@@ -82,7 +85,7 @@ export const homeSpec: ScreenVisualSpec = assertScreenSpec({
   topPadding: layout.topPadding,
   sectionGap: layout.sectionGap,
   cardGap: layout.cardGap,
-  heroHeight: 280,
+  heroHeight: HOME_HERO_HEIGHT,
   cardRadius: layout.cardRadius,
   panelRadius: layout.heroRadius,
   motionLevel: 'M1',

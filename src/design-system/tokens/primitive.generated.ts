@@ -60,7 +60,10 @@ export const primitive = {
     },
     "scrim": {
       "transparent": "transparent",
-      "soft": "rgba(0,0,0,0.35)"
+      "soft": "rgba(0,0,0,0.35)",
+      "inkSoft": "rgba(21,27,43,0.22)",
+      "inkMedium": "rgba(21,27,43,0.42)",
+      "inkStrong": "rgba(21,27,43,0.64)"
     },
     "planet": {
       "sun": "#D5A13C",
@@ -96,6 +99,90 @@ export const primitive = {
       "day": "#FBF6F3",
       "evening": "#F4E7F0",
       "night": "#E9E4F2"
+    }
+  },
+  "material": {
+    "glass": {
+      "none": {
+        "blur": 0,
+        "tint": "#FFFDFC"
+      },
+      "mist": {
+        "blur": 8,
+        "tint": "rgba(255,253,252,0.88)"
+      },
+      "frost": {
+        "blur": 16,
+        "tint": "rgba(255,253,252,0.78)"
+      },
+      "deepFrost": {
+        "blur": 24,
+        "tint": "rgba(246,238,228,0.72)"
+      }
+    },
+    "glassBorder": {
+      "mist": "rgba(255,255,255,0.54)",
+      "frost": "rgba(255,255,255,0.62)",
+      "deep": "rgba(255,255,255,0.72)"
+    },
+    "innerHighlight": {
+      "light": "rgba(255,255,255,0.56)",
+      "soft": "rgba(255,255,255,0.32)",
+      "gold": "rgba(233,216,168,0.30)"
+    },
+    "borderTone": {
+      "hairline": "rgba(46,41,38,0.08)",
+      "soft": "rgba(46,41,38,0.12)",
+      "medium": "rgba(46,41,38,0.18)"
+    },
+    "glow": {
+      "ambientWarm": {
+        "color": "rgba(213,161,60,0.18)",
+        "radius": 24
+      },
+      "ambientCool": {
+        "color": "rgba(124,157,179,0.16)",
+        "radius": 28
+      },
+      "botanical": {
+        "color": "rgba(135,154,122,0.16)",
+        "radius": 22
+      },
+      "selection": {
+        "color": "rgba(120,150,139,0.20)",
+        "radius": 18
+      },
+      "celestial": {
+        "color": "rgba(130,115,148,0.18)",
+        "radius": 30
+      },
+      "ceremonial": {
+        "color": "rgba(197,162,96,0.28)",
+        "radius": 42
+      }
+    },
+    "shadow": {
+      "soft": {
+        "color": "#2E2926",
+        "offsetY": 4,
+        "opacity": 0.08,
+        "radius": 12,
+        "elevation": 2
+      },
+      "card": {
+        "color": "#2E2926",
+        "offsetY": 8,
+        "opacity": 0.1,
+        "radius": 20,
+        "elevation": 4
+      },
+      "elevated": {
+        "color": "#2E2926",
+        "offsetY": 14,
+        "opacity": 0.14,
+        "radius": 30,
+        "elevation": 8
+      }
     }
   },
   "space": {

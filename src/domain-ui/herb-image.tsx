@@ -44,6 +44,11 @@ export type HerbImageProps = {
   accessibilityLabel?: string;
   /** Yer tutucu durum etiketi (TR). */
   pendingLabel?: string;
+  /**
+   * Yer tutucu içeriğinin hizası. Hero panelinde alt bölge cam plakayla
+   * kaplandığı için 'top' verilir — durum metni plakanın altında kalmaz.
+   */
+  placeholderAlign?: 'center' | 'top';
   testID?: string;
   style?: StyleProp<ViewStyle>;
 };
@@ -68,6 +73,7 @@ export function HerbImage({
   scientificName,
   accessibilityLabel,
   pendingLabel = 'Görsel doğrulama bekliyor',
+  placeholderAlign = 'center',
   testID,
   style,
 }: HerbImageProps) {
@@ -107,7 +113,13 @@ export function HerbImage({
       accessibilityLabel={
         decorative ? undefined : [accessibilityLabel, pendingLabel].filter(Boolean).join(', ')
       }
-      style={[styles.fill, styles.placeholder, { backgroundColor: colors.surface.base }, style]}>
+      style={[
+        styles.fill,
+        styles.placeholder,
+        placeholderAlign === 'top' ? styles.placeholderTop : null,
+        { backgroundColor: colors.surface.base },
+        style,
+      ]}>
       <HerbIllustration />
       {scientificName ? (
         <AppText variant="scientificName" tone="secondary" align="center" style={styles.scientific}>
@@ -125,6 +137,9 @@ const styles = {
   fill: {
     width: '100%',
     height: '100%',
+  } satisfies ViewStyle,
+  placeholderTop: {
+    justifyContent: 'flex-start',
   } satisfies ViewStyle,
   placeholder: {
     alignItems: 'center',

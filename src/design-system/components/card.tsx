@@ -7,15 +7,17 @@
  * - İç içe kart YASAK — context ile geliştirme sırasında yakalanır.
  * - Basılabilirse TÜM yüzey basılır (küçük hassas iç hedef yok); basılı geri
  *   bildirim usePressFeedback'ten (reduced-motion'da opacity'ye düşer).
- * - Zemin semantic surface.card; yükseklik elevation.level1 (standart kart,
- *   §14.3); köşe radius.lg. Renkli/sert gölge yok.
+ * - Zemin semantic surface.card; köşe radius.lg. Derinlik 04 §9'un token
+ *   gölgesinden gelir (standart `soft`, hero `card`) + 1px mürekkep saç
+ *   çizgisi (04 §7.1) — kart krem zeminden düz bir dikdörtgen olarak değil,
+ *   kendi kenarı ve yumuşak gölgesiyle ayrışır. Renkli/sert gölge yok.
  */
 
 import { createContext, useContext, type ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { primitive } from '../tokens/primitive.generated';
-import { useTheme } from '../theme';
+import { shadowStyle, useTheme } from '../theme';
 import { AnimatedPressable, usePressFeedback } from './use-press-feedback';
 
 const InsideCard = createContext(false);
@@ -31,8 +33,15 @@ export type CardProps = {
   footer?: ReactNode;
   /** Verilirse kartın TÜM yüzeyi basılır olur. */
   onPress?: () => void;
-  /** true → hero/vurgu kartı: elevation level 2 (§14.3). Varsayılan level 1. */
+  /** true → hero/vurgu kartı: daha derin gölge (04 §9.3 `card`). */
   hero?: boolean;
+  /**
+   * Yüzey tonu (01 §11.3 kart çeşitliliği): `card` beyaz standart yüzey ·
+   * `quiet` sessiz yardımcı yüzey · `parchment` editoryal kâğıt (söz, günlük,
+   * uzun okuma). Kartlar yalnız RENKLE değil malzemeyle ayrışır; parşömen ve
+   * sessiz yüzeylerde gölge yok, tanım kenardan gelir (04 §12.2).
+   */
+  tone?: 'card' | 'quiet' | 'parchment';
   disabled?: boolean;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -46,6 +55,7 @@ export function Card({
   footer,
   onPress,
   hero = false,
+  tone = 'card',
   disabled = false,
   accessibilityLabel,
   style,
@@ -68,10 +78,21 @@ export function Card({
     </InsideCard.Provider>
   );
 
+  const flat = tone !== 'card';
   const containerStyle = [
     baseContainer,
-    { backgroundColor: colors.surface.card },
-    hero ? { elevation: primitive.elevation.level2 } : null,
+    {
+      backgroundColor:
+        tone === 'parchment'
+          ? colors.surface.parchment
+          : tone === 'quiet'
+            ? colors.surface.selected
+            : colors.surface.card,
+      borderColor: flat ? colors.border.soft : colors.border.hairline,
+    },
+    // 04 §9.3/§12.2: standart kart `soft`, hero en fazla `card`; sessiz ve
+    // parşömen yüzeyler gölgesizdir (tanım kenardan gelir).
+    flat ? null : shadowStyle(hero ? 'card' : 'soft'),
     disabled ? { opacity: primitive.opacity.disabled } : null,
     style,
   ];
@@ -104,9 +125,7 @@ const baseContainer: ViewStyle = {
   borderRadius: primitive.radius.lg,
   padding: primitive.space.s16,
   gap: primitive.space.s4,
-  // Android standart kart yüksekliği (level 1); iOS'ta ayrım tonal kontrastla
-  // (§14.2 öncelik sırası) — sert/renkli gölge eklenmez.
-  elevation: primitive.elevation.level1,
+  borderWidth: primitive.borderWidth.thin,
 };
 
 const slotStyles = {

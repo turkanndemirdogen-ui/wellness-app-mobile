@@ -55,7 +55,7 @@ import {
 } from '@/lib/home';
 import { useAsyncResource } from '@/lib/query';
 import { isSupabaseConfigured } from '@/lib/supabase';
-import { MinTouchTarget, Radius, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Spacing } from '@/constants/theme';
 import {
   homeCopy,
   MONTHS_TR,
@@ -70,15 +70,13 @@ import {
   Button,
   Card,
   Chip,
-  PlantCard,
-  PLANT_CARD_FEATURE_MEDIA_ASPECT,
   Reveal,
   SectionHeader,
   Skeleton,
 } from '@/design-system/components';
-import { HerbImage, MoonPhaseGlyph } from '@/domain-ui';
-import { AppText, ScreenShell, Surface } from '@/design-system/primitives';
-import { homeSpec } from '@/design-system/tokens/screen-specs';
+import { DailyHerbHero, MoonPhaseGlyph } from '@/domain-ui';
+import { AppText, isValidQuoteText, ScreenShell, Surface } from '@/design-system/primitives';
+import { HOME_HERO_HEIGHT, homeSpec } from '@/design-system/tokens/screen-specs';
 import { useTheme } from '@/design-system/theme';
 
 function formatDayTitle(d: Date): string {
@@ -275,28 +273,33 @@ export default function AnaSayfaScreen() {
           Keşif'e (ONAYLI ara karar; hedef Bahçe herb_detail, Faz 6). */}
       {herb ? (
         <Reveal>
-          <PlantCard
-            variant="feature"
-            commonName={herbName}
-            scientificName={herbSci}
-            description={herb.data?.tek_satir ?? undefined}
-            onPress={goKesif}
-            accessibilityLabel={`${homeCopy.herbCard.a11yPrefix}: ${herbName}, ${herbSci}`}
-            media={<HerbImage imagePath={herb.image_path} imageVersion={herb.image_version} />}
-          />
+          <View style={styles.section}>
+            <DailyHerbHero
+              commonName={herbName}
+              scientificName={herbSci}
+              imagePath={herb.image_path}
+              imageVersion={herb.image_version}
+              height={HOME_HERO_HEIGHT}
+              scrollY={scrollY}
+              onPress={goKesif}
+              accessibilityLabel={`${homeCopy.herbCard.a11yPrefix}: ${herbName}, ${herbSci}`}
+            />
+            {herb.data?.tek_satir ? (
+              // Editoryal cümle panelin ALTINDA: hero görsel kalır, okuma
+              // yüzeyi sakin ve opak olur (04 §5 "long-form'da cam yok").
+              <AppText variant="reading" tone="secondary">
+                {herb.data.tek_satir}
+              </AppText>
+            ) : null}
+          </View>
         </Reveal>
       ) : (
-        // İskelet: hero kartın geometrisiyle BİREBİR (§36) — aynı köşe (hero
-        // radius), aynı medya oranı, aynı metin satır yükseklikleri. Hazır
-        // olunca yerleşim zıplamaz.
-        <Card
-          hero
-          style={styles.heroSkeletonCard}
-          media={<Skeleton aspectRatio={PLANT_CARD_FEATURE_MEDIA_ASPECT} radius="md" />}>
-          <Skeleton textVariant="displayHero" width="50%" />
-          <Skeleton textVariant="scientificName" width="65%" />
+        // İskelet: hero panelin geometrisiyle birebir — aynı yükseklik, aynı
+        // köşe; altında tek satırlık cümlenin yeri (§36, yerleşim sıçramaz).
+        <View style={styles.section}>
+          <Skeleton height={HOME_HERO_HEIGHT} radius="xl" />
           <Skeleton textVariant="reading" width="85%" />
-        </Card>
+        </View>
       )}
 
       {/* ================= KANIT BÖLGESİ — başlık + boşlukla ayrık (B4) */}
@@ -326,20 +329,21 @@ export default function AnaSayfaScreen() {
       {/* B2 · Kozmik hava satırı — tap → Keşif (spec §6 köprüsü). Kanon sırası
           bu satırı check-in'den SONRA ister (15 §7 "daily celestial insight"). */}
       {themeLine ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={themeLine}
-          onPress={goKesif}
-          style={({ pressed }) => [
-            styles.skyLine,
-            pressed ? { backgroundColor: c.surface.selected } : null,
-          ]}>
-          <AppText variant="readingLead">{themeLine}</AppText>
+        <Pressable accessibilityRole="button" accessibilityLabel={themeLine} onPress={goKesif}>
+          {({ pressed }) => (
+            <Surface
+              role="glassMist"
+              radius="lg"
+              bordered
+              style={[styles.skyLine, pressed ? { backgroundColor: c.surface.selected } : null]}>
+              <AppText variant="readingLead">{themeLine}</AppText>
+            </Surface>
+          )}
         </Pressable>
       ) : dailyPending ? (
-        <View style={styles.skyLine}>
+        <Surface role="glassMist" radius="lg" bordered style={styles.skyLine}>
           <Skeleton textVariant="readingLead" width="70%" />
-        </View>
+        </Surface>
       ) : null}
 
       {/* B6 · Dinamik slot — kural merdiveninin (spec §2-B6) hiçbir koşulu
@@ -356,22 +360,27 @@ export default function AnaSayfaScreen() {
       {quote?.text_tr ? (
         <Reveal>
           <Card
+            tone="parchment"
             footer={
               <>
                 <Chip
-                  label={`${homeCopy.quote.save} ${favoriteIds.includes(quote.soz_id) ? '♥' : '♡'}`}
-                  accessibilityLabel={homeCopy.quote.save}
+                  icon={favoriteIds.includes(quote.soz_id) ? 'savedBookmark' : 'bookmark'}
+                  label={homeCopy.quote.save}
                   selected={favoriteIds.includes(quote.soz_id)}
                   onPress={() => void onToggleFavorite(quote.soz_id)}
                 />
                 <Chip
+                  icon="share"
                   label={homeCopy.quote.share}
-                  accessibilityLabel={homeCopy.quote.share}
                   onPress={() => void onShareQuote(quote.text_tr as string)}
                 />
               </>
             }>
-            <AppText variant="readingLead">{quote.text_tr}</AppText>
+            {/* Caveat YALNIZ kısa söz için (15 §5): 32 kelimeyi aşarsa okuma
+                variant'ına düşer — el yazısı uzun metinde okunurluğu bozar. */}
+            <AppText variant={isValidQuoteText(quote.text_tr) ? 'quote' : 'readingLead'}>
+              {quote.text_tr}
+            </AppText>
           </Card>
         </Reveal>
       ) : dailyPending ? (
@@ -413,7 +422,6 @@ export default function AnaSayfaScreen() {
 const styles = StyleSheet.create({
   // Yatay padding + bloklar arası sectionGap ScreenShell'den (homeSpec, 15 §6).
   content: { paddingBottom: Spacing.six },
-  heroSkeletonCard: { borderRadius: Radius.xl },
   // Bağlam şeridi: tarih solda, ay çipi sağda — tek satır, tek nefes.
   contextStrip: {
     flexDirection: 'row',
@@ -430,13 +438,13 @@ const styles = StyleSheet.create({
   },
   // Bölüm içi ritim: başlık ↔ kart cardGap kadar sıkı (sectionGap bloklar arası).
   section: { gap: Spacing.three },
-  // Basılı hâlin tint'i kart ailesiyle aynı köşeyi kullanır — ekranda dört
-  // farklı radius seviyesi birikmesin (01 §11.2).
+  // Günün göksel içgörüsü cam 1 yüzeyinde (04 §13.1) — kart ailesiyle aynı
+  // köşe, böylece ekranda radius seviyeleri birikmez (01 §11.2).
   skyLine: {
     minHeight: MinTouchTarget,
     justifyContent: 'center',
-    borderRadius: Radius.lg,
-    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
   },
   chipRow: {
     flexDirection: 'row',

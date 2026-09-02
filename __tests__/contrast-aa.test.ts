@@ -21,14 +21,26 @@ function ratio(a: string, b: string): number {
 describe('kontrast — gövde metni (15 §10: normal metin ≥ 4.5:1)', () => {
   it.each(TIMES)('%s ambient diliminde birincil metin tüm yüzeylerde AA', (time) => {
     const { text, surface } = buildSemanticColors(time);
-    for (const ground of [surface.canvas, surface.base, surface.card, surface.powder]) {
+    for (const ground of [
+      surface.canvas,
+      surface.base,
+      surface.card,
+      surface.powder,
+      surface.parchment,
+    ]) {
       expect(ratio(text.primary, ground)).toBeGreaterThanOrEqual(AA_NORMAL);
     }
   });
 
   it.each(TIMES)('%s ambient diliminde ikincil metin tüm yüzeylerde AA', (time) => {
     const { text, surface } = buildSemanticColors(time);
-    for (const ground of [surface.canvas, surface.base, surface.card, surface.powder]) {
+    for (const ground of [
+      surface.canvas,
+      surface.base,
+      surface.card,
+      surface.powder,
+      surface.parchment,
+    ]) {
       expect(ratio(text.secondary, ground)).toBeGreaterThanOrEqual(AA_NORMAL);
     }
   });

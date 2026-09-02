@@ -26,6 +26,7 @@ export {
   AA_NORMAL,
   AA_LARGE,
 } from './contrast';
+export { shadowStyle, glowStyle, type ShadowLevel } from './elevation';
 export { motionDurations, motionDistances, motionEasing } from './motion';
 export {
   AtmosphereProvider,

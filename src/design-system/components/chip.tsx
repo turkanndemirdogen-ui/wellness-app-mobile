@@ -13,12 +13,17 @@
 
 import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Text } from '../primitives';
+import { Icon, Text, type IconName } from '../primitives';
 import { primitive } from '../tokens/primitive.generated';
 import { useTheme } from '../theme';
 
 export type ChipProps = {
   label: string;
+  /**
+   * Etiketin SOLUNDA dekoratif ikon (metnin yerine değil, yanında — anlam
+   * daima metinde, §43). Metin sembolleri (♡ gibi) yerine ikon sistemi.
+   */
+  icon?: IconName;
   selected?: boolean;
   disabled?: boolean;
   onPress?: () => void;
@@ -29,6 +34,7 @@ export type ChipProps = {
 
 export function Chip({
   label,
+  icon,
   selected = false,
   disabled = false,
   onPress,
@@ -57,6 +63,7 @@ export function Chip({
         disabled ? { opacity: primitive.opacity.disabled } : null,
         style,
       ]}>
+      {icon ? <Icon name={icon} size="sm" decorative color={colors.text.primary} /> : null}
       <Text role="label" style={selected ? selectedLabel : undefined}>
         {label}
       </Text>
@@ -72,6 +79,7 @@ const baseContainer: ViewStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'row',
+  gap: primitive.space.s4,
 };
 
 // Seçili durum ikinci görsel kanalı — ağırlık (renk-tek-kanal yasağı, §43).
