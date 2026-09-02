@@ -335,8 +335,8 @@ function Gallery() {
             </AppText>
           ))}
           <Text role="caption" tone="secondary">
-            roller: display={fontRoles.display} · reading={fontRoles.reading} · quote=
-            {fontRoles.quote} · ceremonial={fontRoles.ceremonial} · ui={fontRoles.ui}
+            roller: display={fontRoles.display} (≥20px) · body={fontRoles.body} ·
+            ui={fontRoles.ui} · sci={fontRoles.sci} · quote={fontRoles.quote}
           </Text>
         </Section>
 

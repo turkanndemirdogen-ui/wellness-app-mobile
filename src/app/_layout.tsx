@@ -1,7 +1,10 @@
 import { Caveat_500Medium } from '@expo-google-fonts/caveat';
-import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
-import { Lora_400Regular, Lora_400Regular_Italic } from '@expo-google-fonts/lora';
-import { PlayfairDisplay_500Medium } from '@expo-google-fonts/playfair-display';
+import { Cinzel_400Regular, Cinzel_600SemiBold } from '@expo-google-fonts/cinzel';
+import {
+  Jost_400Regular,
+  Jost_400Regular_Italic,
+  Jost_500Medium,
+} from '@expo-google-fonts/jost';
 import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -54,12 +57,15 @@ function RootStack() {
 
 export default function RootLayout() {
   // 15 §5 rol fontları — rol başına 1-2 kesim (splash bütçesi).
+  // 2026-09-02 tipografi değişimi: Fraunces→Cinzel, Lora→Jost; Playfair
+  // kaldırıldı (kullanılmıyordu). Yeni native modül yok → EAS build gerekmez.
   const [fontsLoaded, fontError] = useFonts({
-    Fraunces_600SemiBold,
-    Lora_400Regular,
-    Lora_400Regular_Italic,
+    Cinzel_400Regular,
+    Cinzel_600SemiBold,
+    Jost_400Regular,
+    Jost_500Medium,
+    Jost_400Regular_Italic,
     Caveat_500Medium,
-    PlayfairDisplay_500Medium,
   });
 
   useEffect(() => {

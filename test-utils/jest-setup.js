@@ -81,5 +81,9 @@ jest.mock('react-native-svg', () => {
     G: mk('G'),
     Rect: mk('Rect'),
     Ellipse: mk('Ellipse'),
+    Defs: mk('Defs'),
+    Stop: mk('Stop'),
+    RadialGradient: mk('RadialGradient'),
+    LinearGradient: mk('SvgLinearGradient'),
   };
 });

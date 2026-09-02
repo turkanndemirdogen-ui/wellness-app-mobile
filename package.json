@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo-google-fonts/caveat": "^0.4.2",
+    "@expo-google-fonts/cinzel": "^0.4.2",
     "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/jost": "^0.4.2",
     "@expo-google-fonts/lora": "^0.4.2",
     "@expo-google-fonts/playfair-display": "^0.4.2",
     "@expo/ui": "~57.0.4",

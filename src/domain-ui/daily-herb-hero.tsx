@@ -10,9 +10,11 @@
  *   3. Atmosferik scrim — üstte patlıcan-menekşe, ortada indigo, altta gece
  *      (material.heroAtmosphere). Alt durak 0.90 opaklıkta: adın oturduğu
  *      bantta kontrast ALTTAKİ GÖRSELDEN BAĞIMSIZ olur (15 §10 + AA).
- *   4. Altın ışık huzmesi — üst köşeden inen yumuşak diyagonal altın
- *      (glow.ceremonial ailesi). Nefes alan ambient katmanla BİRLİKTE solup
- *      derinleşir; iki ayrı animasyon değil, tek ışık nefesi.
+ *   4. Altın ışık huzmesi — üst köşeden yayılan yumuşak RADYAL altın
+ *      (glow.ceremonial → ambientWarm → şeffaf). Nefes alan ambient katmanla
+ *      BİRLİKTE solup derinleşir; iki ayrı animasyon değil, tek ışık nefesi.
+ *      Radyal degrade react-native-svg ile kurulur (expo-linear-gradient
+ *      yalnız doğrusal geçiş verir; huzme köşeden YAYILMALI).
  *   5. Bağlam şeridi — tarih + ay çipi panelin İÇİNDE, üst köşelerde; metin
  *      açık (onPanel), ay çipi altın vurgulu.
  *   6. Adlar — doğrudan scrim üzerinde: yaygın ad büyük açık Fraunces,
@@ -30,6 +32,7 @@
  */
 
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { useEffect } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
@@ -167,15 +170,20 @@ export function DailyHerbHero({
         style={styles.fillAbsolute}
       />
 
-      {/* 4 · Altın ışık huzmesi: üst sağ köşeden diyagonal iner, nefes alır. */}
+      {/* 4 · Altın ışık huzmesi: üst köşeden RADYAL yayılır, nefes alır. */}
       <Animated.View pointerEvents="none" style={[styles.fillAbsolute, breathStyle]}>
-        <LinearGradient
-          colors={[colors.glow.ceremonial.color, colors.glow.ambientWarm.color, TRANSPARENT]}
-          locations={[0, 0.32, 0.78]}
-          start={{ x: 0.82, y: 0 }}
-          end={{ x: 0.18, y: 0.95 }}
-          style={styles.fill}
-        />
+        <Svg width="100%" height="100%">
+          <Defs>
+            {/* Merkez üst-sağ köşe; yarıçap panelin köşegeni kadar → huzme
+                köşeden başlayıp panelin ortasında eriyor. */}
+            <RadialGradient id="heroGoldShaft" cx="82%" cy="-4%" r="98%">
+              <Stop offset="0" stopColor={colors.glow.ceremonial.color} />
+              <Stop offset="0.38" stopColor={colors.glow.ambientWarm.color} />
+              <Stop offset="1" stopColor={TRANSPARENT} />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#heroGoldShaft)" />
+        </Svg>
       </Animated.View>
 
       {/* 5 · Bağlam şeridi: tarih + ay çipi panelin içinde, üst köşelerde. */}

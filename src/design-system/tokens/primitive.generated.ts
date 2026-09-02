@@ -294,7 +294,9 @@ export const primitive = {
       "lineHeight": 16,
       "weight": "500",
       "letterSpacing": 1
-    }
+    },
+    "displayLetterSpacingEm": 0.03,
+    "displayMinSize": 20
   },
   "size": {
     "icon": {
@@ -411,31 +413,31 @@ export const primitive = {
     "ceremonial": {
       "size": 24,
       "lineHeight": 32,
-      "weight": "500"
+      "weight": "400"
     },
     "readingLead": {
       "size": 18,
-      "lineHeight": 28,
+      "lineHeight": 31,
       "weight": "400"
     },
     "reading": {
       "size": 16,
-      "lineHeight": 26,
+      "lineHeight": 27,
       "weight": "400"
     },
     "scientificName": {
-      "size": 14,
-      "lineHeight": 20,
+      "size": 15,
+      "lineHeight": 22,
       "weight": "400"
     },
     "quote": {
       "size": 22,
       "lineHeight": 30,
-      "weight": "400"
+      "weight": "500"
     },
     "uiBody": {
       "size": 15,
-      "lineHeight": 22,
+      "lineHeight": 26,
       "weight": "400"
     },
     "uiLabel": {
@@ -451,7 +453,7 @@ export const primitive = {
     "uiButton": {
       "size": 16,
       "lineHeight": 22,
-      "weight": "600"
+      "weight": "500"
     }
   }
 } as const;
