@@ -133,7 +133,8 @@ export const primitive = {
     "borderTone": {
       "hairline": "rgba(46,41,38,0.08)",
       "soft": "rgba(46,41,38,0.12)",
-      "medium": "rgba(46,41,38,0.18)"
+      "medium": "rgba(46,41,38,0.18)",
+      "gold": "rgba(197,162,96,0.38)"
     },
     "glow": {
       "ambientWarm": {
@@ -183,6 +184,25 @@ export const primitive = {
         "radius": 30,
         "elevation": 8
       }
+    },
+    "heroAtmosphere": {
+      "top": "rgba(103,80,95,0.30)",
+      "upper": "rgba(130,115,148,0.22)",
+      "mid": "rgba(75,83,116,0.52)",
+      "bottom": "rgba(34,43,56,0.90)"
+    },
+    "onPanel": {
+      "primary": "#F3F1EC",
+      "secondary": "#D4D6D4",
+      "lilac": "#CBBEDA"
+    },
+    "ambientTint": {
+      "lilacTop": "rgba(130,115,148,0.10)",
+      "lilacMid": "rgba(130,115,148,0.04)"
+    },
+    "texture": {
+      "background": 0.025,
+      "parchment": 0.05
     }
   },
   "space": {

@@ -52,6 +52,44 @@ describe('kontrast — gövde metni (15 §10: normal metin ≥ 4.5:1)', () => {
   });
 });
 
+describe('kontrast — hero scrim üstü metin (15 EK-A · §10)', () => {
+  /**
+   * Scrim'in alt durağı görselin ÜSTÜNE alfa ile biner. En kötü hâl: altta
+   * bembeyaz bir görsel — scrim ne kadar açılırsa metin o kadar zorlanır.
+   * Bu bileşim AA'yı geçiyorsa gerçek botanik fotoğrafların hepsinde geçer.
+   */
+  function compositeOverWhite(rgbaValue: string): string {
+    const parts = rgbaValue.replace(/rgba?\(|\)/g, '').split(',').map(Number);
+    const [r, g, b, a] = parts;
+    const mix = (channel: number) => Math.round(channel * a + 255 * (1 - a));
+    return `#${[mix(r), mix(g), mix(b)].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  const worstCase = compositeOverWhite(primitive.material.heroAtmosphere.bottom);
+
+  it('yaygın ad (onPanel) en kötü hâlde bile AA', () => {
+    const { text } = buildSemanticColors('day');
+    expect(ratio(text.onPanel, worstCase)).toBeGreaterThanOrEqual(AA_NORMAL);
+  });
+
+  it('bilimsel ad (açık lila) en kötü hâlde bile AA', () => {
+    const { text } = buildSemanticColors('day');
+    expect(ratio(text.onPanelAccent, worstCase)).toBeGreaterThanOrEqual(AA_NORMAL);
+  });
+
+  it('bağlam şeridi metni (onPanelSecondary) en az büyük-metin eşiğini geçer', () => {
+    const { text } = buildSemanticColors('day');
+    expect(ratio(text.onPanelSecondary, worstCase)).toBeGreaterThanOrEqual(AA_NORMAL);
+  });
+
+  it('scrim alt durağı yeterince opak — metin bandı görselden bağımsız', () => {
+    const alpha = Number(
+      primitive.material.heroAtmosphere.bottom.replace(/rgba?\(|\)/g, '').split(',')[3],
+    );
+    expect(alpha).toBeGreaterThanOrEqual(0.85);
+  });
+});
+
 describe('kontrast — accent zemin üstü metin (15 §6 accentHex × §10)', () => {
   it('Ana Sayfa accent’i (adaçayı) normal metin eşiğini geçer', () => {
     const { action } = buildSemanticColors('day', homeSpec.accentHex);

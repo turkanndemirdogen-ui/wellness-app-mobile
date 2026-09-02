@@ -1,31 +1,36 @@
 /**
- * DailyHerbHero — Ana Sayfa'nın tek hero'su: full-bleed bitki görseli
- * (08 §13 "Home hero → V2 immersive" · 04 §13.1 "hero → image + scrim").
+ * DailyHerbHero — Ana Sayfa'nın sinematik hero paneli ("Büyülü" yön kararı,
+ * ürün sahibi C seçeneği, 2026-09-02).
  *
  * KATMANLAR (alttan üste):
- *   1. Görsel — HerbImage, panelin tamamını kaplar (cover). Storage görseli
- *      yoksa HerbImage'in nötr yer tutucusu görünür (10 §11) — ekran değişmez.
- *   2. Paralaks — görsel, scroll'dan YAVAŞ kayar (§17 uzamsal ilişki). Kayma
- *      payı kadar taşan bir kap kullanılır ki kenar açılmasın.
- *   3. Nefes — günün saatine göre sıcak/soğuk ambient glow'un (04 §10.1
- *      "ambient" sınıfı) yumuşak yıkaması; 8 sn'lik tek yönle ambient bandında
- *      (15 §9) gider gelir. Renk değil ışık hareket eder.
- *   4. Mürekkep scrim — alt kenardan yükselen karartma (02 §14 dark scrim;
- *      saf siyah botanik fotoğrafı griye çeviriyordu). Cam plakanın altını
- *      oturtur, görselin kendi kontrastını korur.
- *   5. Cam plaka — ad + bilimsel ad ön-tonlanmış cam üstünde (04 §5 frost,
- *      §12.5 hero glass). Metin görselin üstünde SERBEST durmaz: kendi açık
- *      yüzeyinde durur → kontrast görselden bağımsız ve deterministik (AA).
+ *   1. Görsel — tam genişlik, kenar boşluğu sıfır; köşe yuvarlaması YALNIZ
+ *      altta (üst kenar ekranla birleşir). Storage görseli yoksa HerbImage'in
+ *      nötr yer tutucusu (10 §11).
+ *   2. Paralaks — görsel scroll'dan yavaş kayar (§17); kap kayma payıyla kurulu.
+ *   3. Atmosferik scrim — üstte patlıcan-menekşe, ortada indigo, altta gece
+ *      (material.heroAtmosphere). Alt durak 0.90 opaklıkta: adın oturduğu
+ *      bantta kontrast ALTTAKİ GÖRSELDEN BAĞIMSIZ olur (15 §10 + AA).
+ *   4. Altın ışık huzmesi — üst köşeden inen yumuşak diyagonal altın
+ *      (glow.ceremonial ailesi). Nefes alan ambient katmanla BİRLİKTE solup
+ *      derinleşir; iki ayrı animasyon değil, tek ışık nefesi.
+ *   5. Bağlam şeridi — tarih + ay çipi panelin İÇİNDE, üst köşelerde; metin
+ *      açık (onPanel), ay çipi altın vurgulu.
+ *   6. Adlar — doğrudan scrim üzerinde: yaygın ad büyük açık Fraunces,
+ *      bilimsel ad açık lila italik. Cam plaka YOK.
  *
- * KİLİTLER: bilimsel ad hiçbir hâlde gizlenmez (07 §6 · 12 §F). Panel bir
- * bütün olarak basılır (§25: küçük hassas iç hedef yok). Reduced-motion /
- * düşük güç → paralaks ve nefes tamamen durur, katmanlar statik kalır (§19).
+ * KOYULUK SINIRI (15 §3): bu panel, kanonun koyuluğa izin verdiği "hero görsel
+ * paneli" katmanıdır. Koyu değerler yalnız buradaki scrim'de yaşar; krom (üst
+ * bar, tab bar, form, uzun okuma) açık kalır ve bu bileşen kroma renk vermez.
  *
- * İzole render edilebilir: yalnız prop + token + tema bağlamı (scrollY
- * opsiyoneldir; verilmezse paralaks yok).
+ * KİLİTLER: bilimsel ad hiçbir hâlde gizlenmez (07 §6 · 12 §F). Panel bir bütün
+ * olarak basılır (§25). Reduced-motion / düşük güç → paralaks ve ışık nefesi
+ * tamamen durur, katmanlar statik kalır (§19).
+ *
+ * İzole render edilebilir: yalnız prop + token + tema bağlamı.
  */
 
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -36,12 +41,11 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
 
 import { AnimatedPressable, usePressFeedback } from '@/design-system/components/use-press-feedback';
 import { useMotionScale } from '@/design-system/hooks';
 import { AppText, Surface } from '@/design-system/primitives';
-import { useAtmosphere, useTheme, shadowStyle } from '@/design-system/theme';
+import { shadowStyle, useTheme } from '@/design-system/theme';
 import { motionEasing } from '@/design-system/theme/motion';
 import { primitive } from '@/design-system/tokens/primitive.generated';
 import { HerbImage } from './herb-image';
@@ -54,8 +58,14 @@ export type DailyHerbHeroProps = {
   /** Storage bucket-içi görsel yolu (10 §10). */
   imagePath: string | null;
   imageVersion: number | null;
-  /** Panel yüksekliği — ekran sözleşmesinden (15 §7 heroHeight). */
+  /** Panel yüksekliği — ekranın üst ~%40'ı (çağıran hesaplar). */
   height: number;
+  /** Panelin üstünde bırakılacak güvenli alan payı (durum çubuğu). */
+  topInset?: number;
+  /** Bağlam şeridinin sol yanı: tarih (açık renkte, panelin içinde). */
+  dateLabel?: string;
+  /** Bağlam şeridinin sağ yanı: ay çipi içeriği (glif + metin). */
+  moonChip?: React.ReactNode;
   /** Scroll konumu — verilirse görsel paralaksı çalışır. */
   scrollY?: SharedValue<number>;
   onPress?: () => void;
@@ -68,10 +78,12 @@ export type DailyHerbHeroProps = {
 const PARALLAX_SHIFT = primitive.space.s24;
 /** Paralaksın tamamlandığı scroll mesafesi. */
 const PARALLAX_INPUT = primitive.space.s96 * 2;
-/** Nefesin tek yönü — ambient bandının alt sınırı (15 §9: 8-16 sn). */
+/** Işık nefesinin tek yönü — ambient bandının alt sınırı (15 §9: 8-16 sn). */
 const BREATH_MS = primitive.motionLimits.ambientMinMs;
-/** Nefesin dip ve tepe opaklığı: ışık hiç sönmez, yalnız derinleşir. */
+/** Nefesin dibi: ışık hiç sönmez, yalnız derinleşir. */
 const BREATH_MIN = primitive.opacity.pulse;
+
+const TRANSPARENT = primitive.color.scrim.transparent;
 
 export function DailyHerbHero({
   commonName,
@@ -79,6 +91,9 @@ export function DailyHerbHero({
   imagePath,
   imageVersion,
   height,
+  topInset = 0,
+  dateLabel,
+  moonChip,
   scrollY,
   onPress,
   accessibilityLabel,
@@ -86,11 +101,11 @@ export function DailyHerbHero({
   style,
 }: DailyHerbHeroProps) {
   const { colors } = useTheme();
-  const { phase } = useAtmosphere();
   const motionScale = useMotionScale();
   const { animatedStyle, onPressIn, onPressOut } = usePressFeedback();
+  const atmosphere = colors.heroAtmosphere;
 
-  // --- Nefes: ışık yıkamasının opaklığı ambient bandında gider gelir.
+  // --- Tek ışık nefesi: altın huzme ambient bandında derinleşip geri çekilir.
   const breath = useSharedValue(1);
   useEffect(() => {
     if (motionScale === 0) {
@@ -123,10 +138,6 @@ export function DailyHerbHero({
     };
   });
 
-  // Gündüz sıcak, akşam/gece soğuk ışık (01 §5 gün döngüsü).
-  const ambientGlow =
-    phase === 'day' ? colors.glow.ambientWarm.color : colors.glow.ambientCool.color;
-
   return (
     <AnimatedPressable
       accessibilityRole={onPress ? 'button' : undefined}
@@ -138,57 +149,75 @@ export function DailyHerbHero({
       testID={testID}
       style={[
         styles.panel,
-        { height, backgroundColor: colors.surface.selected, borderColor: colors.border.hairline },
+        { height, paddingTop: topInset, backgroundColor: colors.surface.selected },
         shadowStyle('card'),
         animatedStyle,
         style,
       ]}>
-      {/* 1-2 · Görsel + paralaks (kap, kayma payı kadar taşar). */}
+      {/* 1-2 · Görsel + paralaks. */}
       <Animated.View style={[styles.imageLayer, parallaxStyle]}>
-        <HerbImage
-          imagePath={imagePath}
-          imageVersion={imageVersion}
-          placeholderAlign="top"
-        />
+        <HerbImage imagePath={imagePath} imageVersion={imageVersion} placeholderAlign="top" />
       </Animated.View>
 
-      {/* 3 · Nefes: üstten inen ambient ışık yıkaması. */}
-      <Animated.View pointerEvents="none" style={[styles.bloom, breathStyle]}>
+      {/* 3 · Atmosferik scrim: patlıcan → indigo → gece. */}
+      <LinearGradient
+        colors={[atmosphere.top, atmosphere.upper, atmosphere.mid, atmosphere.bottom]}
+        locations={[0, 0.28, 0.62, 1]}
+        pointerEvents="none"
+        style={styles.fillAbsolute}
+      />
+
+      {/* 4 · Altın ışık huzmesi: üst sağ köşeden diyagonal iner, nefes alır. */}
+      <Animated.View pointerEvents="none" style={[styles.fillAbsolute, breathStyle]}>
         <LinearGradient
-          colors={[ambientGlow, primitive.color.scrim.transparent]}
+          colors={[colors.glow.ceremonial.color, colors.glow.ambientWarm.color, TRANSPARENT]}
+          locations={[0, 0.32, 0.78]}
+          start={{ x: 0.82, y: 0 }}
+          end={{ x: 0.18, y: 0.95 }}
           style={styles.fill}
         />
       </Animated.View>
 
-      {/* 4 · Mürekkep scrim: cam plakanın oturduğu zemin. */}
-      <LinearGradient
-        colors={[primitive.color.scrim.transparent, primitive.color.scrim.inkMedium]}
-        locations={[0.35, 1]}
-        pointerEvents="none"
-        style={styles.scrim}
-      />
+      {/* 5 · Bağlam şeridi: tarih + ay çipi panelin içinde, üst köşelerde. */}
+      {dateLabel || moonChip ? (
+        <View style={styles.contextStrip} pointerEvents="none">
+          {dateLabel ? (
+            <AppText variant="uiLabel" style={{ color: colors.text.onPanelSecondary }}>
+              {dateLabel}
+            </AppText>
+          ) : (
+            <View />
+          )}
+          {moonChip}
+        </View>
+      ) : null}
 
-      {/* 5 · Cam plaka: adlar kendi açık yüzeyinde — kontrast görselden bağımsız. */}
-      <View style={styles.plateSlot} pointerEvents="none">
-        <Surface role="glassFrost" radius="lg" bordered style={styles.plate}>
-          <AppText variant="displayHero" numberOfLines={2}>
-            {commonName}
-          </AppText>
-          <AppText variant="scientificName" tone="secondary" numberOfLines={1}>
-            {scientificName}
-          </AppText>
-        </Surface>
+      {/* 6 · Adlar doğrudan scrim üzerinde — cam plaka yok. */}
+      <View style={styles.names} pointerEvents="none">
+        <AppText
+          variant="displayHero"
+          numberOfLines={2}
+          style={{ color: colors.text.onPanel }}>
+          {commonName}
+        </AppText>
+        <AppText
+          variant="scientificName"
+          numberOfLines={1}
+          style={{ color: colors.text.onPanelAccent }}>
+          {scientificName}
+        </AppText>
       </View>
     </AnimatedPressable>
   );
 }
 
 const styles = {
+  // Kenar boşluğu sıfır; köşe yuvarlaması YALNIZ altta (üst kenar ekranla birleşir).
   panel: {
-    borderRadius: primitive.layout.heroRadius,
-    borderWidth: primitive.borderWidth.thin,
+    borderBottomLeftRadius: primitive.layout.heroRadius,
+    borderBottomRightRadius: primitive.layout.heroRadius,
     overflow: 'hidden',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
   } satisfies ViewStyle,
   // Kayma payı: üstte ve altta PARALLAX_SHIFT kadar taşar → kenar açılmaz.
   imageLayer: {
@@ -198,27 +227,52 @@ const styles = {
     top: -PARALLAX_SHIFT,
     bottom: -PARALLAX_SHIFT,
   } satisfies ViewStyle,
-  bloom: {
+  fillAbsolute: {
     position: 'absolute',
     left: 0,
     right: 0,
     top: 0,
-    height: '60%',
-  } satisfies ViewStyle,
-  scrim: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     bottom: 0,
-    height: '70%',
   } satisfies ViewStyle,
-  plateSlot: {
-    padding: primitive.space.s12,
+  contextStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: primitive.layout.screenPadding,
+    paddingTop: primitive.space.s12,
+    gap: primitive.space.s8,
   } satisfies ViewStyle,
-  plate: {
-    paddingHorizontal: primitive.space.s16,
-    paddingVertical: primitive.space.s12,
+  names: {
+    paddingHorizontal: primitive.layout.screenPadding,
+    paddingBottom: primitive.space.s24,
     gap: primitive.space.s2,
   } satisfies ViewStyle,
   fill: { flex: 1 } satisfies ViewStyle,
+};
+
+/**
+ * Hero'nun ay çipi kabuğu — panel içinde altın vurgulu, açık metinli.
+ * Krom çipinden (pudra zemin) ayrıdır: koyu scrim üstünde yaşar.
+ */
+export function HeroMoonChip({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <Surface
+      role="glassDeep"
+      radius="full"
+      style={[chipStyles.chip, { borderColor: colors.border.gold }]}>
+      {children}
+    </Surface>
+  );
+}
+
+const chipStyles = {
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: primitive.space.s4,
+    paddingHorizontal: primitive.space.s12,
+    paddingVertical: primitive.space.s4,
+    borderWidth: primitive.borderWidth.thin,
+  } satisfies ViewStyle,
 };

@@ -78,6 +78,14 @@ export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DE
        * metninin AA sınırının (4.5:1) altında (15 §10).
        */
       muted: c.textMuted,
+      /**
+       * KOYU hero/panel üstü metin (02 §12 dark seti). Krom metniyle
+       * karıştırılmaz: yalnız atmosferik scrim taşıyan görsel katmanda geçerli.
+       */
+      onPanel: m.onPanel.primary,
+      onPanelSecondary: m.onPanel.secondary,
+      /** Bilimsel ad, hero scrim'i üstünde (Büyülü yönü — açık lila). */
+      onPanelAccent: m.onPanel.lilac,
     },
     border: {
       subtle: c.border,
@@ -89,6 +97,8 @@ export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DE
       /** Cam kenarı: camın üstündeki ışık çizgisi (04 §5, §7.3). */
       glass: m.glassBorder.frost,
       glassSoft: m.glassBorder.mist,
+      /** İnce altın saç çizgisi — Büyülü yönünün kart kenarı (04 §7.3: max 1px). */
+      gold: m.borderTone.gold,
     },
     /** İç ışık (04 §11) — 1px üst kenar / yumuşak radial yıkama. */
     highlight: {
@@ -101,6 +111,15 @@ export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DE
      * celestial/ceremonial durumda, viewport başına en fazla 2 kaynak.
      */
     glow: m.glow,
+    /**
+     * Hero atmosferi (15 §3 izinli koyuluk: "hero görsel paneli"). Bu değerler
+     * KROMA sızamaz — yalnız DailyHerbHero'nun scrim katmanı tüketir.
+     */
+    heroAtmosphere: m.heroAtmosphere,
+    /** Zemin lila-krem tonlaması (Büyülü yönü) — koyulaşma değil, tonlama. */
+    ambientTint: m.ambientTint,
+    /** Doku opaklıkları (04 §17.2). */
+    texture: m.texture,
     action: {
       /** Primary buton zemini / vurgu eylem rengi — ekran accent'i. */
       primary: accentHex,

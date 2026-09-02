@@ -1,11 +1,17 @@
 /**
  * Ana Sayfa — "Günlük Pusula" (ana-sayfa-spec v1.2 · Phase 4 D1 retrofit).
  *
- * BLOK SIRASI (15 §7 / 08 §3 — D1'de kanona taşındı):
+ * BLOK SIRASI (15 §7 / 08 §3):
  *   B1 tarih + ay çipi → B3 günün bitkisi (HERO) → B4 check-in şeridi →
  *   B2 kozmik hava satırı → B6 dinamik slot (render yok) → B5 günün sözü +
- *   kaydet/paylaş. Önceki sıra hero'yu üçüncü sıraya koyuyordu; kanon hero'yu
- *   bağlam şeridinin hemen altına ister ("ilk viewportta tek ana odak", 08 §1).
+ *   kaydet/paylaş.
+ *
+ * "BÜYÜLÜ" YÖN KARARI (ürün sahibi C seçeneği, 2026-09-02): B1 artık ayrı bir
+ * blok değil — tarih + ay çipi hero panelinin İÇİNDE, üst köşelerde yaşıyor.
+ * Kanon sırası korunuyor (bağlam hâlâ addan önce okunur), yalnız iki blok tek
+ * sinematik panelde birleşti. Hero tam genişlik, ekranın üst ~%40'ı, köşe
+ * yuvarlaması yalnız altta; koyu atmosferik scrim 15 §3'ün "hero görsel paneli"
+ * istisnasında yaşıyor — krom (tab bar, form, uzun okuma) açık kalır.
  *
  * GÖRSEL SÖZLEŞME: ekran kabuğu ScreenShell + homeSpec (15 §6-7) — zemin,
  * yatay padding, sectionGap ve accent (adaçayı) tek noktadan spec'ten gelir;
@@ -36,7 +42,15 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
+import {
+  Pressable,
+  RefreshControl,
+  Share,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useRouter, type Href } from 'expo-router';
 
@@ -74,8 +88,14 @@ import {
   SectionHeader,
   Skeleton,
 } from '@/design-system/components';
-import { DailyHerbHero, MoonPhaseGlyph } from '@/domain-ui';
-import { AppText, isValidQuoteText, ScreenShell, Surface } from '@/design-system/primitives';
+import { DailyHerbHero, HeroMoonChip, MoonPhaseGlyph } from '@/domain-ui';
+import {
+  AppText,
+  isValidQuoteText,
+  ScreenShell,
+  Surface,
+  useScreenHorizontalPadding,
+} from '@/design-system/primitives';
 import { HOME_HERO_HEIGHT, homeSpec } from '@/design-system/tokens/screen-specs';
 import { useTheme } from '@/design-system/theme';
 
@@ -86,6 +106,12 @@ function formatDayTitle(d: Date): string {
 export default function AnaSayfaScreen() {
   const { colors: c } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const screenPadding = useScreenHorizontalPadding(homeSpec);
+
+  // Hero ekranın üst ~%40'ı; 15 §7'nin heroHeight'i (280) TABAN olarak korunur.
+  const heroHeight = Math.max(HOME_HERO_HEIGHT, Math.round(windowHeight * 0.4));
   const [refreshing, setRefreshing] = useState(false);
 
   const dateKey = todayKey();
@@ -240,49 +266,43 @@ export default function AnaSayfaScreen() {
 
       {/* ================= SEMBOLİK BÖLGE (spec §0: kanıttan görsel ayrık) */}
 
-      {/* B1 · Bağlam şeridi: tarih + ay çipi (herkese aynı gök; kişiselleştirme
-          yok). Bağlam katmanıdır, başlık değil (01 §11.1) — bu yüzden metadata
-          ölçeğinde durur ve ekranın tek büyük serifini hero'ya bırakır. */}
-      <View style={styles.contextStrip}>
-        <AppText variant="uiLabel" tone="secondary">
-          {formatDayTitle(new Date())}
-        </AppText>
-        {transit ? (
-          // Çip: pudra zemin (15 §3 powder blush); faz-özel glif (Sprint 2.2A ⑥)
-          // + tek satır metin — emoji yağmuru yok.
-          <Surface role="powder" radius="full" style={styles.moonChip}>
-            <MoonPhaseGlyph phase={transit.moonPhase} />
-            <AppText variant="uiLabel">
-              {MOON_IN_SIGN_TR[transit.moonSign]} · {MOON_PHASE_TR[transit.moonPhase]}
-            </AppText>
-          </Surface>
-        ) : !transitSettled ? (
-          // Çip yüksekliği sabit kalsın diye iskelet aynı kabukta (§3, §36).
-          <Surface role="powder" radius="full" style={styles.moonChip}>
-            <Skeleton textVariant="uiLabel" width={Spacing.six * 2} radius="full" />
-          </Surface>
-        ) : null}
-      </View>
-
-      {/* B3 · Günün bitki kartı — ekranın TEK hero'su (08 §1 "ilk viewportta
-          tek ana odak"). Havuz daima app_safe; doz/tüketim dili içerik
-          kontratında yasak. Yaygın ad + bilimsel ad birlikte (12 §F, 07 §6);
-          görsel yuvası HerbImage — Storage görseli yoksa nötr yer tutucu
-          (10 §11), görsel geldiğinde ekran değişmez. Canlı/önbellek yoksa
-          açılış bitkisi (ONAYLI — hero asla boş değil). Tap: geçici köprü
-          Keşif'e (ONAYLI ara karar; hedef Bahçe herb_detail, Faz 6). */}
+      {/* B1 + B3 · Bağlam şeridi (tarih + ay çipi) ve günün bitkisi TEK
+          sinematik panelde. Ekranın TEK hero'su (08 §1 "ilk viewportta tek ana
+          odak"); tam genişlik → kabuğun yatay padding'inden negatif marjla
+          taşar. Havuz daima app_safe; doz/tüketim dili içerik kontratında
+          yasak. Yaygın ad + bilimsel ad birlikte (12 §F, 07 §6). Görsel yoksa
+          nötr yer tutucu (10 §11). Canlı/önbellek yoksa açılış bitkisi
+          (ONAYLI — hero asla boş değil). Tap: geçici köprü Keşif'e. */}
       {herb ? (
         <Reveal>
-          <View style={styles.section}>
+          <View style={styles.heroBlock}>
             <DailyHerbHero
               commonName={herbName}
               scientificName={herbSci}
               imagePath={herb.image_path}
               imageVersion={herb.image_version}
-              height={HOME_HERO_HEIGHT}
+              height={heroHeight}
+              topInset={insets.top}
+              dateLabel={formatDayTitle(new Date())}
+              moonChip={
+                transit ? (
+                  <HeroMoonChip>
+                    <MoonPhaseGlyph phase={transit.moonPhase} />
+                    <AppText variant="uiLabel" style={{ color: c.text.onPanel }}>
+                      {MOON_IN_SIGN_TR[transit.moonSign]} · {MOON_PHASE_TR[transit.moonPhase]}
+                    </AppText>
+                  </HeroMoonChip>
+                ) : !transitSettled ? (
+                  // Çip yüksekliği sabit kalsın diye iskelet aynı kabukta (§36).
+                  <HeroMoonChip>
+                    <Skeleton textVariant="uiLabel" width={Spacing.six * 2} radius="full" />
+                  </HeroMoonChip>
+                ) : null
+              }
               scrollY={scrollY}
               onPress={goKesif}
               accessibilityLabel={`${homeCopy.herbCard.a11yPrefix}: ${herbName}, ${herbSci}`}
+              style={{ marginHorizontal: -screenPadding }}
             />
             {herb.data?.tek_satir ? (
               // Editoryal cümle panelin ALTINDA: hero görsel kalır, okuma
@@ -294,10 +314,13 @@ export default function AnaSayfaScreen() {
           </View>
         </Reveal>
       ) : (
-        // İskelet: hero panelin geometrisiyle birebir — aynı yükseklik, aynı
-        // köşe; altında tek satırlık cümlenin yeri (§36, yerleşim sıçramaz).
-        <View style={styles.section}>
-          <Skeleton height={HOME_HERO_HEIGHT} radius="xl" />
+        // İskelet: hero panelin geometrisiyle birebir (§36, yerleşim sıçramaz).
+        <View style={styles.heroBlock}>
+          <Skeleton
+            height={heroHeight}
+            radius="xl"
+            style={{ marginHorizontal: -screenPadding }}
+          />
           <Skeleton textVariant="reading" width="85%" />
         </View>
       )}
@@ -421,21 +444,11 @@ export default function AnaSayfaScreen() {
 
 const styles = StyleSheet.create({
   // Yatay padding + bloklar arası sectionGap ScreenShell'den (homeSpec, 15 §6).
-  content: { paddingBottom: Spacing.six },
-  // Bağlam şeridi: tarih solda, ay çipi sağda — tek satır, tek nefes.
-  contextStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
-  },
-  moonChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
-  },
+  // Üst padding sıfır: hero ekranın en üstünden başlar (güvenli alan payını
+  // panelin kendisi uygular).
+  content: { paddingTop: 0, paddingBottom: Spacing.six },
+  // Hero bloğu: panel tam genişlik, altındaki cümle normal kolonda kalır.
+  heroBlock: { gap: Spacing.three },
   // Bölüm içi ritim: başlık ↔ kart cardGap kadar sıkı (sectionGap bloklar arası).
   section: { gap: Spacing.three },
   // Günün göksel içgörüsü cam 1 yüzeyinde (04 §13.1) — kart ailesiyle aynı

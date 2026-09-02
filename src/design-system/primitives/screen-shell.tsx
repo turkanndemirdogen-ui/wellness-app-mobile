@@ -42,6 +42,18 @@ export type ScreenShellProps = {
   children?: ReactNode;
 };
 
+/**
+ * Ekranın çözülmüş yatay padding'i. Tam genişlik (full-bleed) bir blok, bu
+ * değer kadar NEGATİF yatay marj alarak kabuğun dışına taşar — iki yerde ayrı
+ * sayı tutulmasın diye kaynak tek: burası.
+ */
+export function useScreenHorizontalPadding(spec: ScreenVisualSpec): number {
+  const { widthClass } = useWidthClass();
+  return widthClass === 'compact'
+    ? primitive.layout.compactScreenPadding
+    : spec.horizontalPadding;
+}
+
 export function ScreenShell({
   spec,
   scroll = true,
@@ -54,12 +66,7 @@ export function ScreenShell({
   children,
 }: ScreenShellProps) {
   assertScreenSpec(spec); // panel-dark background yasağı + motion sınırı
-  const { widthClass } = useWidthClass();
-
-  const horizontalPadding =
-    widthClass === 'compact'
-      ? primitive.layout.compactScreenPadding
-      : spec.horizontalPadding;
+  const horizontalPadding = useScreenHorizontalPadding(spec);
 
   const containerStyle: ViewStyle = { flex: 1, backgroundColor: spec.backgroundHex };
   const contentStyle: ViewStyle = {

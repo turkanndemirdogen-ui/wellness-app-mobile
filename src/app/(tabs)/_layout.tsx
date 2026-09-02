@@ -45,6 +45,11 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          // "Büyülü" yön kararı: Ana Sayfa hero'su ekranın en üstünden başlar
+          // (tam genişlik, üstte köşe yok) → başlık çubuğu bu sekmede kapalı.
+          // Bağlam (tarih + ay çipi) hero'nun İÇİNDE yaşıyor; başlığın taşıdığı
+          // bilgi kaybolmuyor. Diğer sekmeler başlıklı kalır (krom açık, 15 §3).
+          headerShown: false,
           title: 'Ana Sayfa',
           tabBarAccessibilityLabel: 'Ana Sayfa',
           tabBarButtonTestID: 'tab-ana-sayfa',

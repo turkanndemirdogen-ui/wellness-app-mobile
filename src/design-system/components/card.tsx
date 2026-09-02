@@ -7,20 +7,25 @@
  * - İç içe kart YASAK — context ile geliştirme sırasında yakalanır.
  * - Basılabilirse TÜM yüzey basılır (küçük hassas iç hedef yok); basılı geri
  *   bildirim usePressFeedback'ten (reduced-motion'da opacity'ye düşer).
- * - Zemin semantic surface.card; köşe radius.lg. Derinlik 04 §9'un token
- *   gölgesinden gelir (standart `soft`, hero `card`) + 1px mürekkep saç
- *   çizgisi (04 §7.1) — kart krem zeminden düz bir dikdörtgen olarak değil,
- *   kendi kenarı ve yumuşak gölgesiyle ayrışır. Renkli/sert gölge yok.
+ * - Zemin ("Büyülü" yönü, 2026-09-02): standart kart artık HAFİF ŞEFFAF beyaz
+ *   (glass mist tint'i) ve kenarı İNCE ALTIN saç çizgisi — zemin tonlaması
+ *   kartın altından hafifçe okunur, kart düz beyaz dikdörtgen olmaz. Derinlik
+ *   04 §9'un token gölgesinden gelir (standart `soft`, hero `card`).
+ *   `parchment` tonunda ayrıca kâğıt taneciği görünür (04 §17.2 parchment).
+ *   Renkli/sert gölge yok.
  */
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, View, type ImageStyle, type StyleProp, type ViewStyle } from 'react-native';
 
 import { primitive } from '../tokens/primitive.generated';
 import { shadowStyle, useTheme } from '../theme';
 import { AnimatedPressable, usePressFeedback } from './use-press-feedback';
 
 const InsideCard = createContext(false);
+
+/** Kâğıt taneciği — parşömen tonundaki editoryal kartlarda (04 §17.2). */
+const GRAIN = require('../../assets/textures/grain.png');
 
 export type CardProps = {
   /** Üst slot: başlık satırı / rozetler. */
@@ -71,6 +76,15 @@ export function Card({
 
   const slots = (
     <InsideCard.Provider value>
+      {tone === 'parchment' ? (
+        <Image
+          source={GRAIN}
+          resizeMode="repeat"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[grainOverlay, { opacity: colors.texture.parchment }]}
+        />
+      ) : null}
       {header ? <View style={slotStyles.row}>{header}</View> : null}
       {children ? <View style={slotStyles.content}>{children}</View> : null}
       {media ? <View>{media}</View> : null}
@@ -87,8 +101,11 @@ export function Card({
           ? colors.surface.parchment
           : tone === 'quiet'
             ? colors.surface.selected
-            : colors.surface.card,
-      borderColor: flat ? colors.border.soft : colors.border.hairline,
+            : // Standart kart: hafif şeffaf beyaz — zemin altından okunur.
+              colors.surface.glassMist,
+      // Altın saç çizgisi standart ve parşömen kartlarda; sessiz yüzey
+      // mürekkep kenarında kalır (yardımcı yüzey öne çıkmaz).
+      borderColor: tone === 'quiet' ? colors.border.soft : colors.border.gold,
     },
     // 04 §9.3/§12.2: standart kart `soft`, hero en fazla `card`; sessiz ve
     // parşömen yüzeyler gölgesizdir (tanım kenardan gelir).
@@ -126,6 +143,16 @@ const baseContainer: ViewStyle = {
   padding: primitive.space.s16,
   gap: primitive.space.s4,
   borderWidth: primitive.borderWidth.thin,
+  overflow: 'hidden',
+};
+
+/** Doku katmanı içeriğin ARKASINDA kalır — metnin altında görünmez (04 §17.3). */
+const grainOverlay: ImageStyle = {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  top: 0,
+  bottom: 0,
 };
 
 const slotStyles = {

@@ -20,11 +20,17 @@
  *   döngü hiç yok → düşük güçte azaltılacak parçacık/döngü bu katmanda zaten
  *   bulunmaz.
  *
+ * "Büyülü" yön eklemesi (2026-09-02): taban artık düz krem değil — çok hafif
+ * LİLA-KREM dikey geçiş (ambientTint) + %2.5 tanecik dokusu (04 §17.2
+ * background grain). Krom AÇIK kalır: bu bir tonlama, koyulaşma değil (15 §3).
+ * Doku gövde metninin altında görünmez (04 §17.3) — opaklık gözle seçilmeyecek
+ * bantta ve metin yüzeyleri (kart/cam) dokunun ÜSTÜNDE durur.
+ *
  * İzole render edilebilir: yalnız prop + token + tema bağlamı.
  */
 
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   Extrapolation,
@@ -50,6 +56,9 @@ export type AmbientBackgroundProps = {
    */
   responseSignal?: number;
 };
+
+/** Zemin taneciği — 128x128, deterministik üretim (bkz. tokens.json material.texture). */
+const GRAIN = require('../../assets/textures/grain.png');
 
 // Paralaks aralığı: s96'lık kaydırmada en çok s24 yukarı kayma (küçük, sakin).
 const PARALLAX_INPUT = primitive.space.s96;
@@ -94,6 +103,22 @@ export function AmbientBackground({ scrollY, responseSignal }: AmbientBackground
         colors={[colors.ambient.wash, colors.ambient.base]}
         locations={[0, 0.6]}
         style={styles.fill}
+      />
+      {/* Lila-krem tonlama: üstte hafif menekşe, aşağı doğru eriyor. */}
+      <LinearGradient
+        colors={[
+          colors.ambientTint.lilacTop,
+          colors.ambientTint.lilacMid,
+          primitive.color.scrim.transparent,
+        ]}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Tanecik: tekrarlı döşenir, %2.5 — "visible film grain" sınırının altında. */}
+      <Image
+        source={GRAIN}
+        resizeMode="repeat"
+        style={[StyleSheet.absoluteFill, { opacity: colors.texture.background }]}
       />
       {/* Işık kayması katmanı: aynı yıkama daha derine iner; yalnız tepki
           anında görünür (opacity 0 tabanlı). */}

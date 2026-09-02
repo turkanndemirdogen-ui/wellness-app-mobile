@@ -95,7 +95,7 @@ import {
 } from '@/design-system/theme';
 import { primitive } from '@/design-system/tokens/primitive.generated';
 import { allScreenSpecs, HOME_HERO_HEIGHT } from '@/design-system/tokens/screen-specs';
-import { DailyHerbHero, HerbImage } from '@/domain-ui';
+import { DailyHerbHero, HerbImage, HeroMoonChip, MoonPhaseGlyph } from '@/domain-ui';
 import { fetchHerbs, type Herb } from '@/lib/content';
 import { herbLatin } from '@/lib/home';
 import { TR_TEST_STRING } from '@/lib/text-tr';
@@ -741,9 +741,10 @@ function Gallery() {
 
         <Section title="P4 · DailyHerbHero — Home hero'su (görselli / görselsiz)">
           <Text role="caption" tone="secondary">
-            full-bleed görsel + paralaks + nefes alan ambient ışık + mürekkep
-            scrim + cam plaka · metin görselin üstünde serbest durmaz, kendi
-            açık yüzeyinde durur (kontrast deterministik)
+            tam genişlik görsel + paralaks + atmosferik scrim (patlıcan →
+            indigo → gece) + nefes alan altın ışık huzmesi · adlar doğrudan
+            scrim üzerinde; alt durak %90 opak olduğu için kontrast alttaki
+            görselden bağımsız (en kötü hâl testte)
           </Text>
           <DailyHerbHero
             commonName="Lavanta"
@@ -751,6 +752,15 @@ function Gallery() {
             imagePath="lavanta/card-01.webp"
             imageVersion={1}
             height={HOME_HERO_HEIGHT}
+            dateLabel="2 Eylül, Çarşamba"
+            moonChip={
+              <HeroMoonChip>
+                <MoonPhaseGlyph phase="dolunay" />
+                <AppText variant="uiLabel" style={{ color: primitive.material.onPanel.primary }}>
+                  Ay Koç&apos;ta · Dolunay
+                </AppText>
+              </HeroMoonChip>
+            }
             accessibilityLabel="Günün bitkisi: Lavanta, Lavandula angustifolia"
             onPress={noop}
           />

@@ -53,6 +53,13 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+// react-native-safe-area-context: sağlayıcı testte mount edilmez → sabit inset.
+jest.mock('react-native-safe-area-context', () => ({
+  __esModule: true,
+  useSafeAreaInsets: () => ({ top: 24, bottom: 0, left: 0, right: 0 }),
+  SafeAreaProvider: ({ children }) => children,
+}));
+
 // react-native-svg native modüldür; paket resmî jest mock'u taşımıyor →
 // prop'ları koruyan host-component mock'u (glyph snapshot/sözleşme testleri
 // path/stroke prop'larını render ağacından okur).
