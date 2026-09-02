@@ -10,16 +10,35 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 // shared value + timing/repeat). UI-thread davranışı test için JS'te düzleştirilir.
 jest.mock('react-native-reanimated', () => {
   const React = require('react');
-  const { View } = require('react-native');
+  const { View, ScrollView } = require('react-native');
   const createAnimatedComponent = (Component) => Component;
   const AnimatedView = ({ children, ...props }) => React.createElement(View, props, children);
+  const AnimatedScrollView = ({ children, ...props }) =>
+    React.createElement(ScrollView, props, children);
   const passthrough = (value) => value;
+  // Layout animasyon kurucuları (Reveal → FadeIn.duration(...)): zincirlenebilir
+  // no-op; testte yalnız varlıkları önemli, ürettikleri değer render'a girmez.
+  const layoutAnimation = () => {
+    const chain = {};
+    for (const method of ['duration', 'delay', 'springify', 'easing', 'withInitialValues', 'build']) {
+      chain[method] = () => chain;
+    }
+    return chain;
+  };
   return {
     __esModule: true,
-    default: { createAnimatedComponent, View: AnimatedView },
+    default: {
+      createAnimatedComponent,
+      View: AnimatedView,
+      ScrollView: AnimatedScrollView,
+    },
     View: AnimatedView,
+    ScrollView: AnimatedScrollView,
     createAnimatedComponent,
     useSharedValue: (value) => ({ value }),
+    useAnimatedScrollHandler: () => () => {},
+    interpolate: (value) => (typeof value === 'number' ? value : 0),
+    Extrapolation: { CLAMP: 'clamp', EXTEND: 'extend', IDENTITY: 'identity' },
     useAnimatedStyle: (fn) => (typeof fn === 'function' ? fn() : {}),
     useDerivedValue: (fn) => ({ value: typeof fn === 'function' ? fn() : undefined }),
     withTiming: passthrough,
@@ -28,6 +47,8 @@ jest.mock('react-native-reanimated', () => {
     withDelay: (_delay, value) => value,
     cancelAnimation: () => {},
     useReducedMotion: () => false,
+    FadeIn: layoutAnimation(),
+    FadeOut: layoutAnimation(),
     Easing: { bezier: () => () => 0, linear: () => 0, inOut: (f) => f, out: (f) => f, in: (f) => f },
   };
 });

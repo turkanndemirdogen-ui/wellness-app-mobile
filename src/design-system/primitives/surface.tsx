@@ -12,7 +12,7 @@ import { View, type ViewProps } from 'react-native';
 import { primitive } from '../tokens/primitive.generated';
 import { useTheme } from '../theme';
 
-export type SurfaceRole = 'canvas' | 'base' | 'card' | 'selected';
+export type SurfaceRole = 'canvas' | 'base' | 'card' | 'selected' | 'powder';
 export type RadiusKey = keyof typeof primitive.radius;
 
 // RN'in ARIA `role` prop'u bilinçli dışarıda bırakılır (Omit): buradaki `role`

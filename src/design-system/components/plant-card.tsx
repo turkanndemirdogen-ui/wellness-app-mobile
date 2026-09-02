@@ -8,6 +8,10 @@
  * (plantName), bilimsel ad italik (scientificName variant, 03 §9). Toksisite
  * metni Safety-owned → PROP'la gelir (component üretmez). List/compact tekrar
  * eden satırlardır → gölge yok (04 §9). Feature vurgu kartı (elevation level2).
+ *
+ * `description`: bitkinin tek satırlık editoryal cümlesi (Lora `reading`).
+ * Yalnız tam kartlarda (grid/feature) görünür; list/compact tekrar eden
+ * satırlar olduğu için metin taşımaz. İçerik PROP'la gelir (03 §8.2).
  */
 
 import type { ReactNode } from 'react';
@@ -21,12 +25,17 @@ import { AnimatedPressable, usePressFeedback } from './use-press-feedback';
 
 export type PlantCardVariant = 'grid' | 'list' | 'feature' | 'compact';
 
+/** feature varyantının medya en-boy oranı — iskelet yuvaları buna hizalanır (§36). */
+export const PLANT_CARD_FEATURE_MEDIA_ASPECT = 16 / 9;
+
 export type PlantCardProps = {
   commonName: string;
   scientificName: string;
   /** Medya slotu (illüstrasyon). Verilmezse placeholder (herb ikonu). */
   media?: ReactNode;
   family?: string;
+  /** Tek satırlık editoryal cümle (grid/feature'da görünür). */
+  description?: string;
   tags?: string[];
   /** Toksisite rozeti metni (Safety-owned; PROP'la gelir). */
   toxicityBadge?: string;
@@ -46,16 +55,19 @@ export type PlantCardProps = {
 type VariantCfg = {
   direction: 'row' | 'column';
   showScientific: boolean;
-  nameVariant: 'plantName' | 'uiBody';
+  /** Tek satırlık açıklama bu varyantta gösterilir mi (tekrar eden satırlarda hayır). */
+  showDescription: boolean;
+  nameVariant: 'displayHero' | 'plantName' | 'uiBody';
   /** Sabit thumb kenarı (row varyantları); undefined → tam genişlik medya. */
   mediaSize?: number;
 };
 
 const VARIANT: Record<PlantCardVariant, VariantCfg> = {
-  grid: { direction: 'column', showScientific: true, nameVariant: 'plantName' },
-  feature: { direction: 'column', showScientific: true, nameVariant: 'plantName' },
-  list: { direction: 'row', showScientific: true, nameVariant: 'plantName', mediaSize: primitive.space.s64 },
-  compact: { direction: 'row', showScientific: false, nameVariant: 'uiBody', mediaSize: primitive.space.s40 },
+  grid: { direction: 'column', showScientific: true, showDescription: true, nameVariant: 'plantName' },
+  // feature = ekranın hero kartı → yaygın ad hero title ölçeğinde (03 §7.1).
+  feature: { direction: 'column', showScientific: true, showDescription: true, nameVariant: 'displayHero' },
+  list: { direction: 'row', showScientific: true, showDescription: false, nameVariant: 'plantName', mediaSize: primitive.space.s64 },
+  compact: { direction: 'row', showScientific: false, showDescription: false, nameVariant: 'uiBody', mediaSize: primitive.space.s40 },
 };
 
 export function PlantCard({
@@ -63,6 +75,7 @@ export function PlantCard({
   scientificName,
   media,
   family,
+  description,
   tags,
   toxicityBadge,
   onSave,
@@ -90,7 +103,10 @@ export function PlantCard({
 
   const mediaDims: ViewStyle = cfg.mediaSize
     ? { width: cfg.mediaSize, height: cfg.mediaSize }
-    : { width: '100%', aspectRatio: variant === 'feature' ? 16 / 9 : 4 / 5 };
+    : {
+        width: '100%',
+        aspectRatio: variant === 'feature' ? PLANT_CARD_FEATURE_MEDIA_ASPECT : 4 / 5,
+      };
 
   const mediaNode = (
     <Surface role="card" radius="md" style={[mediaDims, mediaBox]}>
@@ -135,6 +151,12 @@ export function PlantCard({
         </View>
         {saveNode}
       </View>
+
+      {description && cfg.showDescription ? (
+        <AppText variant="reading" tone="secondary">
+          {description}
+        </AppText>
+      ) : null}
 
       {tags?.length ? (
         <View style={tagRow}>

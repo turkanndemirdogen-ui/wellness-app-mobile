@@ -28,7 +28,12 @@ import { primitive } from '../tokens/primitive.generated';
 import { useMotionScale } from '../hooks';
 import { useTheme } from '../theme';
 import { motionDurations, motionEasing } from '../theme/motion';
-import { textRoles, type TextRoleName } from '../theme/typography';
+import {
+  appTextVariants,
+  textRoles,
+  type AppTextVariant,
+  type TextRoleName,
+} from '../theme/typography';
 import type { RadiusKey } from '../primitives';
 
 export type SkeletonProps = {
@@ -37,6 +42,13 @@ export type SkeletonProps = {
   height?: number;
   /** Yer tutulan metnin rolü — yükseklik rolün satır yüksekliği olur. */
   textRole?: TextRoleName;
+  /** Yer tutulan metnin AppText variant'ı (15 §5 rol sistemi); textRole'den önce gelir. */
+  textVariant?: AppTextVariant;
+  /**
+   * Sabit yükseklik yerine en-boy oranı (medya yuvaları): iskelet, yüklenen
+   * görselle AYNI geometriyi tutar → hazır olunca düzen sıçramaz (§36).
+   */
+  aspectRatio?: number;
   radius?: RadiusKey;
   style?: StyleProp<ViewStyle>;
 };
@@ -45,6 +57,8 @@ export function Skeleton({
   width = '100%',
   height,
   textRole,
+  textVariant,
+  aspectRatio,
   radius = 'sm',
   style,
 }: SkeletonProps) {
@@ -71,9 +85,13 @@ export function Skeleton({
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
 
-  const resolvedHeight = textRole
-    ? (textRoles[textRole].lineHeight ?? primitive.space.s16)
-    : (height ?? primitive.space.s16);
+  const resolvedHeight = aspectRatio
+    ? undefined
+    : textVariant
+    ? (appTextVariants[textVariant].lineHeight ?? primitive.space.s16)
+    : textRole
+      ? (textRoles[textRole].lineHeight ?? primitive.space.s16)
+      : (height ?? primitive.space.s16);
 
   return (
     <Animated.View
@@ -83,6 +101,7 @@ export function Skeleton({
         {
           width,
           height: resolvedHeight,
+          aspectRatio,
           borderRadius: primitive.radius[radius],
           backgroundColor: colors.surface.selected,
         },

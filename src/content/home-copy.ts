@@ -81,6 +81,12 @@ export const homeCopy = {
   herbCard: {
     /** B3 erişilebilirlik etiketi şablon başı (onaylı). */
     a11yPrefix: 'Günün bitkisi',
+    /**
+     * Bilimsel ad kaydı eksikse gösterilen bekleme etiketi. Bilimsel ad hiçbir
+     * varyantta gizlenemez (07 §6) — boşluk yerine durum metni yazılır.
+     * Editoryal onay bekliyor (HerbImage 'Görsel doğrulama bekliyor' deseniyle aynı).
+     */
+    scientificPending: 'bilimsel ad bekleniyor',
   },
   quote: {
     /**
@@ -112,5 +118,9 @@ export const OPENING_HERB: Herb = {
   // değil, canlı veriyle gelir.
   image_path: null,
   image_version: null,
-  data: { tek_satir: 'Geleneksel olarak sakinlik anlarıyla anılır.' },
+  // names: kanonik motor-tablo kaydından (content/motor-tablo-pilot.json).
+  data: {
+    tek_satir: 'Geleneksel olarak sakinlik anlarıyla anılır.',
+    names: { tr: 'Papatya', en: 'Chamomile', la: 'Matricaria chamomilla' },
+  },
 };

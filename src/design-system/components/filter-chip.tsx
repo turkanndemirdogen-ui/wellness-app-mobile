@@ -11,6 +11,7 @@ import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
 
 import { AppText, Icon } from '../primitives';
 import { primitive } from '../tokens/primitive.generated';
+import { appTextVariants } from '../theme/typography';
 import { useTheme } from '../theme';
 
 export type FilterChipProps = {
@@ -75,5 +76,6 @@ const container: ViewStyle = {
   gap: primitive.space.s4,
 };
 
-// İkinci görsel kanal — ağırlık (renk-tek-kanal yasağı, 15 §10).
-const selectedLabel = { fontWeight: '600' } as const;
+// İkinci görsel kanal — ağırlık (renk-tek-kanal yasağı, 15 §10). Ağırlık
+// literal değil, tipografi token'ından (uiButton kesimi) gelir.
+const selectedLabel = { fontWeight: appTextVariants.uiButton.fontWeight } as const;

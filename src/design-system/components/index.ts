@@ -8,7 +8,12 @@ export { Button, IconButton, type ButtonProps, type IconButtonProps, type Button
 export { Card, type CardProps } from './card';
 export { Chip, type ChipProps } from './chip';
 export { FilterChip, type FilterChipProps } from './filter-chip';
-export { PlantCard, type PlantCardProps, type PlantCardVariant } from './plant-card';
+export {
+  PlantCard,
+  PLANT_CARD_FEATURE_MEDIA_ASPECT,
+  type PlantCardProps,
+  type PlantCardVariant,
+} from './plant-card';
 export { ListItem, type ListItemProps } from './list-item';
 export { Reveal, type RevealProps } from './reveal';
 export { Skeleton, type SkeletonProps } from './skeleton';

@@ -19,6 +19,14 @@ import type { EngineEvent } from './astro';
 import { fetchHerbs, fetchQuotes, type Herb, type Quote } from './content';
 import { supabase } from './supabase';
 
+/**
+ * Bitkinin bilimsel adı (`data.names.la`). Bitki yüzeylerinde zorunlu alan
+ * (07 §6 kilidi, 12 §F) — yoksa null döner, çağıran bekleme etiketi gösterir.
+ */
+export function herbLatin(herb: Herb): string | null {
+  return herb.data?.names?.la ?? null;
+}
+
 /** Yerel gün anahtarı — 'YYYY-MM-DD' (cihaz saat dilimi; gün dönümü yerel). */
 export function todayKey(d: Date = new Date()): string {
   const m = String(d.getMonth() + 1).padStart(2, '0');

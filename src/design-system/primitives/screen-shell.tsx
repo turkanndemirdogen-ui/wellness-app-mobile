@@ -1,46 +1,93 @@
 /**
- * ScreenShell — ScreenVisualSpec tüketen ekran kabuğu (15 §6; Phase 1 contract).
+ * ScreenShell — ScreenVisualSpec tüketen ekran kabuğu (15 §6).
  *
- * Ekranın background/padding/sectionGap değerlerini spec'ten TEK noktadan
- * uygular; panel-only dark (visual panel) renklerini background olarak
- * REDDEDER (assertScreenSpec). Ekranlar Phase 4-5 retrofit'inde buna taşınır;
- * Phase 1'de tüketici yalnız dev-gallery'dir.
+ * Ekranın zemin/padding/sectionGap değerlerini spec'ten TEK noktadan uygular ve
+ * panel-only dark (visual panel) renklerini background olarak REDDEDER
+ * (assertScreenSpec). Ayrıca spec'in `accentHex`'ini alt ağaca yayar (15 §6) —
+ * ekranlar vurgu rengini kendileri seçmez, sözleşmelerinden alır.
+ *
+ * Yatay padding (08 §1 + 15 §6): compact cihazda `compactScreenPadding` (16),
+ * diğerlerinde spec'in `horizontalPadding` değeri (20). NOT: hooks/
+ * use-width-class'ın 20/24/32 marjları bu kanon değerleriyle çelişir; ekranlar
+ * retrofit sırasında spec'e taşınır (VISUAL_TECH_DEBT).
+ *
+ * `background` slotu içeriğin ARKASINA serilir (AmbientBackground gibi
+ * etkileşimsiz atmosfer katmanları için). Scroll yüzeyi Animated.ScrollView'dur
+ * → paralaks/scroll bağlı ambient (Living World) ek sarmalayıcı istemez.
  */
 
-import { ScrollView, View, type ViewProps } from 'react-native';
+import type { ReactNode } from 'react';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { type AnimatedScrollViewProps } from 'react-native-reanimated';
 
+import { useWidthClass } from '../hooks';
+import { ScreenAccent } from '../theme';
+import { primitive } from '../tokens/primitive.generated';
 import { assertScreenSpec, type ScreenVisualSpec } from '../tokens/screen-specs';
 
-export type ScreenShellProps = ViewProps & {
+export type ScreenShellProps = {
   spec: ScreenVisualSpec;
-  /** true (varsayılan) → içerik ScrollView'da; false → düz View (ör. chat). */
+  /** true (varsayılan) → içerik scroll eder; false → düz View (ör. chat). */
   scroll?: boolean;
+  /** İçeriğin arkasına serilen atmosfer katmanı (etkileşimsiz). */
+  background?: ReactNode;
+  /** Scroll konumu dinleyicisi (Reanimated worklet handler) — paralaks için. */
+  onScroll?: AnimatedScrollViewProps['onScroll'];
+  /** Aşağı çekip yenileme denetimi. */
+  refreshControl?: AnimatedScrollViewProps['refreshControl'];
+  /** İçerik kabının ek stili (dikey padding vb.). */
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+  children?: ReactNode;
 };
 
-export function ScreenShell({ spec, scroll = true, style, children, ...rest }: ScreenShellProps) {
+export function ScreenShell({
+  spec,
+  scroll = true,
+  background,
+  onScroll,
+  refreshControl,
+  contentContainerStyle,
+  style,
+  testID,
+  children,
+}: ScreenShellProps) {
   assertScreenSpec(spec); // panel-dark background yasağı + motion sınırı
+  const { widthClass } = useWidthClass();
 
-  const containerStyle = {
-    flex: 1,
-    backgroundColor: spec.backgroundHex,
-  } as const;
-  const contentStyle = {
-    paddingHorizontal: spec.horizontalPadding,
+  const horizontalPadding =
+    widthClass === 'compact'
+      ? primitive.layout.compactScreenPadding
+      : spec.horizontalPadding;
+
+  const containerStyle: ViewStyle = { flex: 1, backgroundColor: spec.backgroundHex };
+  const contentStyle: ViewStyle = {
+    paddingHorizontal: horizontalPadding,
     paddingTop: spec.topPadding,
     gap: spec.sectionGap,
-  } as const;
+  };
 
-  if (!scroll) {
-    return (
-      <View style={[containerStyle, contentStyle, style]} {...rest}>
-        {children}
-      </View>
-    );
-  }
+  const body = scroll ? (
+    <Animated.ScrollView
+      onScroll={onScroll}
+      scrollEventThrottle={16}
+      refreshControl={refreshControl}
+      contentContainerStyle={[contentStyle, contentContainerStyle]}>
+      {children}
+    </Animated.ScrollView>
+  ) : (
+    <View style={[contentStyle, styles.flex, contentContainerStyle]}>{children}</View>
+  );
 
   return (
-    <ScrollView style={[containerStyle, style]} contentContainerStyle={contentStyle} {...rest}>
-      {children}
-    </ScrollView>
+    <ScreenAccent accentHex={spec.accentHex}>
+      <View testID={testID} style={[containerStyle, style]}>
+        {background}
+        {body}
+      </View>
+    </ScreenAccent>
   );
 }
+
+const styles = { flex: { flex: 1 } satisfies ViewStyle };

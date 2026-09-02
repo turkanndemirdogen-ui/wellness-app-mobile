@@ -23,6 +23,11 @@ export type Herb = {
   image_version: number | null;
   data: {
     tek_satir?: string | null;
+    /**
+     * Kanonik ad sözlüğü (motor-tablo şeması `names`): tr/en/la. Bilimsel ad
+     * `la` alanındadır ve bitki yüzeylerinde zorunlu görünür (12 §F, 07 §6).
+     */
+    names?: { tr?: string | null; en?: string | null; la?: string | null } | null;
     guvenlik?: { uyari_chip?: string | null } | null;
     beden_bolgeleri?: string[] | null;
     /** İllüstrasyon referansı (spec B3 alan listesi) — varlık haritası anahtarı. */

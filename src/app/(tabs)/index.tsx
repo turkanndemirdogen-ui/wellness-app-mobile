@@ -1,15 +1,26 @@
 /**
- * Ana Sayfa — "Günlük Pusula" (ana-sayfa-spec v1.2, Kompozisyon B, onaylı).
+ * Ana Sayfa — "Günlük Pusula" (ana-sayfa-spec v1.2 · Phase 4 D1 retrofit).
  *
- * Blok dizilimi (spec §1): B1 gün başlığı+ay çipi → B2 kozmik hava satırı →
- * B3 günün bitki kartı → B4 check-in şeridi (kanıt bölgesi) → B5 günün sözü →
- * B6 dinamik slot. Sembolik ve kanıt bölgeleri görsel ayrık (başlıkçık+boşluk);
- * tek cümlede karışmaz. Chat baloncuğu YOK (onaylı).
+ * BLOK SIRASI (15 §7 / 08 §3 — D1'de kanona taşındı):
+ *   B1 tarih + ay çipi → B3 günün bitkisi (HERO) → B4 check-in şeridi →
+ *   B2 kozmik hava satırı → B6 dinamik slot (render yok) → B5 günün sözü +
+ *   kaydet/paylaş. Önceki sıra hero'yu üçüncü sıraya koyuyordu; kanon hero'yu
+ *   bağlam şeridinin hemen altına ister ("ilk viewportta tek ana odak", 08 §1).
  *
- * Haller (spec §3): yüklenirken blok yükseklikleri sabit iskeletler (zıplama
- * yok); veri yoksa blok sessizce gizlenir — TEK İSTİSNA B3: hero asla boş
- * kalmaz (Sprint 2.2A ürün sahibi kararı, ONAYLI) — canlı/önbellek yoksa
- * gömülü açılış bitkisi kartı gösterilir. Önbellek düşüşü lib/query'de (§38).
+ * GÖRSEL SÖZLEŞME: ekran kabuğu ScreenShell + homeSpec (15 §6-7) — zemin,
+ * yatay padding, sectionGap ve accent (adaçayı) tek noktadan spec'ten gelir;
+ * ekran kendi renk/ölçü değeri üretmez.
+ *
+ * TİPOGRAFİ (15 §5 rol sistemi): tek büyük serif hero'nun bitki adıdır
+ * (03 §7.1: hero başlıkla aynı viewportta ikinci büyük serif olmaz) — tarih
+ * bağlam şeridine iner (uiLabel). Bilimsel ad Lora italik, gövde Lora, kontrol
+ * ve metadata System sans.
+ *
+ * KORUNAN DAVRANIŞ (B1-B6 preservation map — retrofit'te DEĞİŞMEZ):
+ * yüklenirken sabit yükseklikli iskeletler (zıplama yok); veri yoksa blok
+ * sessizce gizlenir — TEK İSTİSNA B3: hero asla boş kalmaz (Sprint 2.2A ürün
+ * sahibi kararı, ONAYLI) — canlı/önbellek yoksa gömülü açılış bitkisi. B6
+ * hiçbir koşulda render edilmez. Önbellek düşüşü lib/query'de (§38).
  *
  * Living World A5 dilimi (Design A5, §21): AmbientBackground (günün saatine
  * göre ışık yıkaması) + minimal paralaks (scroll) + tek çevresel tepki
@@ -25,26 +36,17 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Pressable,
-  RefreshControl,
-  Share,
-  StyleSheet,
-  View,
-} from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
+import { Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
+import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useRouter, type Href } from 'expo-router';
 
 import { astro, type DailyTransit } from '@/lib/astro';
 import { readCheckin, saveCheckin, type CheckinEntry } from '@/lib/checkin';
-import { PLANET_GLYPH } from '@/lib/content';
 import { readFavoriteQuoteIds, toggleFavoriteQuote } from '@/lib/favorites';
 import { hapticCompletion, hapticSelection } from '@/lib/haptics';
 import {
   fetchHomeDaily,
+  herbLatin,
   pickDailyHerb,
   pickDailyQuote,
   pickThemeLine,
@@ -68,12 +70,15 @@ import {
   Button,
   Card,
   Chip,
+  PlantCard,
+  PLANT_CARD_FEATURE_MEDIA_ASPECT,
   Reveal,
+  SectionHeader,
   Skeleton,
 } from '@/design-system/components';
-import { HERB_ILLUSTRATION_HEIGHT, HerbIllustration, MoonPhaseGlyph } from '@/domain-ui';
-import { useWidthClass } from '@/design-system/hooks';
-import { Surface, Text } from '@/design-system/primitives';
+import { HerbImage, MoonPhaseGlyph } from '@/domain-ui';
+import { AppText, ScreenShell, Surface } from '@/design-system/primitives';
+import { homeSpec } from '@/design-system/tokens/screen-specs';
 import { useTheme } from '@/design-system/theme';
 
 function formatDayTitle(d: Date): string {
@@ -82,7 +87,6 @@ function formatDayTitle(d: Date): string {
 
 export default function AnaSayfaScreen() {
   const { colors: c } = useTheme();
-  const { horizontalMargin } = useWidthClass();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -205,7 +209,8 @@ export default function AnaSayfaScreen() {
 
   // B3 hero asla boş kalmaz (ONAYLI karar): canlı → önbellek → açılış bitkisi.
   const herb = liveHerb ?? (dailyPending ? null : OPENING_HERB);
-  const herbGlyph = PLANET_GLYPH[herb?.gezegen_birincil ?? ''];
+  const herbName = herb ? (herb.name_tr ?? herb.herb_id) : '';
+  const herbSci = herb ? (herbLatin(herb) ?? homeCopy.herbCard.scientificPending) : '';
 
   // Spec §3: tüm sembolik CANLI içerik boşsa tek yumuşak satır (hero açılış
   // bitkisiyle dolu kalır; satır göğe ulaşılamadığını nazikçe söyler).
@@ -220,123 +225,86 @@ export default function AnaSayfaScreen() {
   const goKesif = useCallback(() => router.navigate('/kesif' as Href), [router]);
 
   return (
-    <View style={[styles.root, { backgroundColor: c.ambient.base }]}>
-      {/* Living World katman 1: ambient ışık + paralaks + çevresel tepki. */}
-      <AmbientBackground scrollY={scrollY} responseSignal={ambientPulse} />
+    <ScreenShell
+      spec={homeSpec}
+      onScroll={onScroll}
+      contentContainerStyle={styles.content}
+      /* Living World katman 1: ambient ışık + paralaks + çevresel tepki. */
+      background={<AmbientBackground scrollY={scrollY} responseSignal={ambientPulse} />}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.text.primary} />
+      }>
+      {__DEV__ && daily.stale ? (
+        <AppText variant="uiCaption" tone="secondary" align="center">
+          [dev] önbellekten · canlı deneme başarısız ({daily.error?.kind ?? '?'})
+        </AppText>
+      ) : null}
 
-      <Animated.ScrollView
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={[styles.container, { paddingHorizontal: horizontalMargin }]}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.text.primary} />
-        }>
-        {__DEV__ && daily.stale ? (
-          <Text role="caption" tone="secondary" align="center">
-            [dev] önbellekten · canlı deneme başarısız ({daily.error?.kind ?? '?'})
-          </Text>
+      {/* ================= SEMBOLİK BÖLGE (spec §0: kanıttan görsel ayrık) */}
+
+      {/* B1 · Bağlam şeridi: tarih + ay çipi (herkese aynı gök; kişiselleştirme
+          yok). Bağlam katmanıdır, başlık değil (01 §11.1) — bu yüzden metadata
+          ölçeğinde durur ve ekranın tek büyük serifini hero'ya bırakır. */}
+      <View style={styles.contextStrip}>
+        <AppText variant="uiLabel" tone="secondary">
+          {formatDayTitle(new Date())}
+        </AppText>
+        {transit ? (
+          // Çip: pudra zemin (15 §3 powder blush); faz-özel glif (Sprint 2.2A ⑥)
+          // + tek satır metin — emoji yağmuru yok.
+          <Surface role="powder" radius="full" style={styles.moonChip}>
+            <MoonPhaseGlyph phase={transit.moonPhase} />
+            <AppText variant="uiLabel">
+              {MOON_IN_SIGN_TR[transit.moonSign]} · {MOON_PHASE_TR[transit.moonPhase]}
+            </AppText>
+          </Surface>
+        ) : !transitSettled ? (
+          // Çip yüksekliği sabit kalsın diye iskelet aynı kabukta (§3, §36).
+          <Surface role="powder" radius="full" style={styles.moonChip}>
+            <Skeleton textVariant="uiLabel" width={Spacing.six * 2} radius="full" />
+          </Surface>
         ) : null}
+      </View>
 
-        {/* ================= SEMBOLİK BÖLGE (spec §0: kanıttan görsel ayrık) */}
-
-        {/* B1 · Gün başlığı + ay çipi (herkese aynı gök; kişiselleştirme yok) */}
-        <View style={styles.header}>
-          <Text role="display.l">{formatDayTitle(new Date())}</Text>
-          {transit ? (
-            // Çip: pudra zemin + erik metin (spec B1); faz-özel glif (Sprint
-            // 2.2A ⑥) + tek satır metin — emoji yağmuru yok.
-            <Surface role="base" radius="full" style={styles.moonChip}>
-              <MoonPhaseGlyph phase={transit.moonPhase} />
-              <Text role="label">
-                {MOON_IN_SIGN_TR[transit.moonSign]} · {MOON_PHASE_TR[transit.moonPhase]}
-              </Text>
-            </Surface>
-          ) : !transitSettled ? (
-            // Çip yüksekliği sabit kalsın diye iskelet aynı kabukta (§3, §36).
-            <Surface role="base" radius="full" style={styles.moonChip}>
-              <Skeleton textRole="label" width={Spacing.six * 2} radius="full" />
-            </Surface>
-          ) : null}
-        </View>
-
-        {/* B2 · Kozmik hava satırı — tap → Keşif (spec §6 köprüsü) */}
-        {themeLine ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={themeLine}
+      {/* B3 · Günün bitki kartı — ekranın TEK hero'su (08 §1 "ilk viewportta
+          tek ana odak"). Havuz daima app_safe; doz/tüketim dili içerik
+          kontratında yasak. Yaygın ad + bilimsel ad birlikte (12 §F, 07 §6);
+          görsel yuvası HerbImage — Storage görseli yoksa nötr yer tutucu
+          (10 §11), görsel geldiğinde ekran değişmez. Canlı/önbellek yoksa
+          açılış bitkisi (ONAYLI — hero asla boş değil). Tap: geçici köprü
+          Keşif'e (ONAYLI ara karar; hedef Bahçe herb_detail, Faz 6). */}
+      {herb ? (
+        <Reveal>
+          <PlantCard
+            variant="feature"
+            commonName={herbName}
+            scientificName={herbSci}
+            description={herb.data?.tek_satir ?? undefined}
             onPress={goKesif}
-            style={({ pressed }) => [
-              styles.skyLine,
-              pressed ? { backgroundColor: c.surface.selected } : null,
-            ]}>
-            <Text role="body.l">{themeLine}</Text>
-          </Pressable>
-        ) : dailyPending ? (
-          <View style={styles.skyLine}>
-            <Skeleton textRole="body.l" width="70%" />
-          </View>
-        ) : null}
+            accessibilityLabel={`${homeCopy.herbCard.a11yPrefix}: ${herbName}, ${herbSci}`}
+            media={<HerbImage imagePath={herb.image_path} imageVersion={herb.image_version} />}
+          />
+        </Reveal>
+      ) : (
+        // İskelet: hero kartın geometrisiyle BİREBİR (§36) — aynı köşe (hero
+        // radius), aynı medya oranı, aynı metin satır yükseklikleri. Hazır
+        // olunca yerleşim zıplamaz.
+        <Card
+          hero
+          style={styles.heroSkeletonCard}
+          media={<Skeleton aspectRatio={PLANT_CARD_FEATURE_MEDIA_ASPECT} radius="md" />}>
+          <Skeleton textVariant="displayHero" width="50%" />
+          <Skeleton textVariant="scientificName" width="65%" />
+          <Skeleton textVariant="reading" width="85%" />
+        </Card>
+      )}
 
-        {/* B3 · Günün bitki kartı (hero, elevation 2) — havuz daima app_safe;
-            doz/tüketim dili içerik kontratında yasak. İllüstrasyon yuvası
-            medya slotunda (görsel metni engellemez). Canlı/önbellek yoksa
-            açılış bitkisi (ONAYLI — hero asla boş değil). Tap: geçici köprü
-            Keşif'e (ONAYLI ara karar; hedef Bahçe herb_detail, Faz 6). */}
-        {herb ? (
-          <Reveal>
-            <Card
-              hero
-              onPress={goKesif}
-              accessibilityLabel={`${homeCopy.herbCard.a11yPrefix}: ${herb.name_tr ?? herb.herb_id}`}
-              header={
-                <>
-                  {herbGlyph ? (
-                    <Text
-                      role="heading.m"
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants">
-                      {herbGlyph}
-                    </Text>
-                  ) : null}
-                  <Text role="heading.l" style={styles.flexShrink}>
-                    {herb.name_tr}
-                  </Text>
-                </>
-              }
-              media={<HerbIllustration illusRef={herb.data?.illus_ref} />}>
-              {herb.data?.tek_satir ? (
-                <Text role="body.m" tone="secondary">
-                  {herb.data.tek_satir}
-                </Text>
-              ) : null}
-            </Card>
-          </Reveal>
-        ) : (
-          // İskelet: hero kartın rol + medya yükseklikleriyle bire bir (§36).
-          <Card
-            hero
-            header={
-              <>
-                <Skeleton width={Spacing.four} height={Spacing.four} radius="full" />
-                <Skeleton textRole="heading.l" width="50%" />
-              </>
-            }
-            media={<Skeleton height={HERB_ILLUSTRATION_HEIGHT} radius="lg" />}>
-            <Skeleton textRole="body.m" width="85%" />
-          </Card>
-        )}
+      {/* ================= KANIT BÖLGESİ — başlık + boşlukla ayrık (B4) */}
 
-        {/* ================= KANIT BÖLGESİ — başlıkçık + boşlukla ayrık (B4) */}
-
-        <Text
-          role="overline"
-          tone="secondary"
-          accessibilityRole="header"
-          style={styles.sectionTitle}>
-          {homeCopy.checkin.sectionTitle}
-        </Text>
+      <View style={styles.section}>
+        <SectionHeader title={homeCopy.checkin.sectionTitle} />
         <Card>
-          <Text role="body.m">{homeCopy.checkin.question}</Text>
+          <AppText variant="uiBody">{homeCopy.checkin.question}</AppText>
           <View style={styles.chipRow}>
             {QUICK_MOODS.map((m) => (
               <Chip
@@ -348,87 +316,111 @@ export default function AnaSayfaScreen() {
             ))}
           </View>
           {checkin ? (
-            <Text role="caption" tone="secondary">
+            <AppText variant="uiCaption" tone="secondary">
               {homeCopy.checkin.loggedHint}
-            </Text>
+            </AppText>
           ) : null}
         </Card>
+      </View>
 
-        {/* B5 · Günün sözü — atıfsız; mikro-eylemler kaydet ♡ · paylaş (spec
-            B5, Sprint 2.2A ⑦). Havuz boşsa blok gizli (launch-blocker).
-            Ana Sayfa kompaktlarında blok-altı disclaimer yok (spec §9). */}
-        {quote?.text_tr ? (
-          <Reveal>
-            <Card
-              footer={
-                <>
-                  <Chip
-                    label={`${homeCopy.quote.save} ${favoriteIds.includes(quote.soz_id) ? '♥' : '♡'}`}
-                    accessibilityLabel={homeCopy.quote.save}
-                    selected={favoriteIds.includes(quote.soz_id)}
-                    onPress={() => void onToggleFavorite(quote.soz_id)}
-                  />
-                  <Chip
-                    label={homeCopy.quote.share}
-                    accessibilityLabel={homeCopy.quote.share}
-                    onPress={() => void onShareQuote(quote.text_tr as string)}
-                  />
-                </>
-              }>
-              <Text role="body.l">{quote.text_tr}</Text>
-            </Card>
-          </Reveal>
-        ) : dailyPending ? (
+      {/* B2 · Kozmik hava satırı — tap → Keşif (spec §6 köprüsü). Kanon sırası
+          bu satırı check-in'den SONRA ister (15 §7 "daily celestial insight"). */}
+      {themeLine ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={themeLine}
+          onPress={goKesif}
+          style={({ pressed }) => [
+            styles.skyLine,
+            pressed ? { backgroundColor: c.surface.selected } : null,
+          ]}>
+          <AppText variant="readingLead">{themeLine}</AppText>
+        </Pressable>
+      ) : dailyPending ? (
+        <View style={styles.skyLine}>
+          <Skeleton textVariant="readingLead" width="70%" />
+        </View>
+      ) : null}
+
+      {/* B6 · Dinamik slot — kural merdiveninin (spec §2-B6) hiçbir koşulu
+          bugünkü modül setiyle sağlanamıyor (natal daveti→onboarding Faz 3,
+          döngü/quiz ekranı/garden_state yok) → slot render edilmez; ekran
+          5 blokla tamamdır. (Kanon 15 §7 sıra #6 Free/Pro teaser'ı da bu
+          konumda ister; Pro modülü yokken ölü uç üretmemek için çizilmedi —
+          ürün sahibine raporlandı.) */}
+
+      {/* B5 · Günün sözü + kaydet/paylaş (15 §7 sıra #7) — atıfsız; mikro-
+          eylemler kaydet ♡ · paylaş (spec B5, Sprint 2.2A ⑦). Havuz boşsa blok
+          gizli (launch-blocker). Ana Sayfa kompaktlarında blok-altı disclaimer
+          yok (spec §9). Caveat söz variant'ı D4 dilimi. */}
+      {quote?.text_tr ? (
+        <Reveal>
           <Card
             footer={
               <>
-                <Skeleton width={Spacing.six} height={Spacing.five + Spacing.two} radius="full" />
-                <Skeleton width={Spacing.six} height={Spacing.five + Spacing.two} radius="full" />
+                <Chip
+                  label={`${homeCopy.quote.save} ${favoriteIds.includes(quote.soz_id) ? '♥' : '♡'}`}
+                  accessibilityLabel={homeCopy.quote.save}
+                  selected={favoriteIds.includes(quote.soz_id)}
+                  onPress={() => void onToggleFavorite(quote.soz_id)}
+                />
+                <Chip
+                  label={homeCopy.quote.share}
+                  accessibilityLabel={homeCopy.quote.share}
+                  onPress={() => void onShareQuote(quote.text_tr as string)}
+                />
               </>
             }>
-            <Skeleton textRole="body.l" width="90%" />
-            <Skeleton textRole="body.l" width="60%" />
+            <AppText variant="readingLead">{quote.text_tr}</AppText>
           </Card>
-        ) : null}
+        </Reveal>
+      ) : dailyPending ? (
+        <Card
+          footer={
+            <>
+              <Skeleton width={Spacing.six} height={Spacing.five + Spacing.two} radius="full" />
+              <Skeleton width={Spacing.six} height={Spacing.five + Spacing.two} radius="full" />
+            </>
+          }>
+          <Skeleton textVariant="readingLead" width="90%" />
+          <Skeleton textVariant="readingLead" width="60%" />
+        </Card>
+      ) : null}
 
-        {/* B6 · Dinamik slot — kural merdiveninin (spec §2-B6) hiçbir koşulu
-            bugünkü modül setiyle sağlanamıyor (natal daveti→onboarding Faz 3,
-            döngü/quiz ekranı/garden_state yok) → slot render edilmez; ekran
-            5 blokla tamamdır. */}
+      {symbolicEmpty ? (
+        <AppText variant="uiBody" tone="secondary" align="center">
+          {homeCopy.offlineSky}
+        </AppText>
+      ) : null}
 
-        {symbolicEmpty ? (
-          <Text role="body.m" tone="secondary" align="center" style={styles.offline}>
-            {homeCopy.offlineSky}
-          </Text>
-        ) : null}
-
-        {__DEV__ ? (
-          <>
-            <Text role="caption" tone="secondary" align="center">
-              [dev] gök verisi mock (Swiss Ephemeris · Faz 5) — satır/kart seçimi
-              gerçek DB kural ve bitki havuzundan
-            </Text>
-            <Button
-              label="dev-gallery"
-              variant="ghost"
-              onPress={() => router.push('/dev-gallery' as Href)}
-            />
-          </>
-        ) : null}
-      </Animated.ScrollView>
-    </View>
+      {__DEV__ ? (
+        <View style={styles.section}>
+          <AppText variant="uiCaption" tone="secondary" align="center">
+            [dev] gök verisi mock (Swiss Ephemeris · Faz 5) — satır/kart seçimi
+            gerçek DB kural ve bitki havuzundan
+          </AppText>
+          <Button
+            label="dev-gallery"
+            variant="ghost"
+            onPress={() => router.push('/dev-gallery' as Href)}
+          />
+        </View>
+      ) : null}
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  // Yatay padding genişlik sınıfından (§13.3); dikey ritim §13.4 token'ları.
-  container: {
-    paddingTop: Spacing.four,
-    paddingBottom: Spacing.six,
-    gap: Spacing.three,
+  // Yatay padding + bloklar arası sectionGap ScreenShell'den (homeSpec, 15 §6).
+  content: { paddingBottom: Spacing.six },
+  heroSkeletonCard: { borderRadius: Radius.xl },
+  // Bağlam şeridi: tarih solda, ay çipi sağda — tek satır, tek nefes.
+  contextStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
   },
-  header: { gap: Spacing.two, alignItems: 'flex-start' },
   moonChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,19 +428,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.one,
   },
+  // Bölüm içi ritim: başlık ↔ kart cardGap kadar sıkı (sectionGap bloklar arası).
+  section: { gap: Spacing.three },
+  // Basılı hâlin tint'i kart ailesiyle aynı köşeyi kullanır — ekranda dört
+  // farklı radius seviyesi birikmesin (01 §11.2).
   skyLine: {
     minHeight: MinTouchTarget,
     justifyContent: 'center',
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     paddingVertical: Spacing.one,
   },
-  sectionTitle: { marginTop: Spacing.four },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
     marginTop: Spacing.one,
   },
-  offline: { marginTop: Spacing.four },
-  flexShrink: { flexShrink: 1 },
 });

@@ -4,75 +4,117 @@
  * LIGHT-FIRST (LOCKED, 15 §3 ile teyitli): tam dark mode YOK. Semantic renkler
  * yalnız açık primitivlerden türetilir; koyuluk yalnız panel-only token'larda
  * yaşar (panel-only — VisualPanel bileşeni) ve ana kroma asla sızmaz.
- * (primitive.color.dark 2026-07-21'de kaldırıldı; hiç kullanılmıyordu.)
+ *
+ * KROM KAYNAĞI (Phase 4 taşıması, 2026-09-02): renkler artık `color.chrome`
+ * (15 §4 KESİN HEX kilidi) üzerinden okunur. Önceki `color.light` pudra seti
+ * tokens.json'da zaten "deprecated-alias — ekranlar Phase 4-5'te chrome'a
+ * taşınır" diye işaretliydi; bu dosya o taşımanın tek noktasıdır. `color.light`
+ * SİLİNMEDİ (kalıcı silme yasağı), yalnız artık okunmuyor.
  *
  * ADAPTIVE AMBIENT (Design §11.5): günün saatine göre YALNIZ surface.canvas
- * tonu değişir (primitive.color.ambient). Kart, metin, navigasyon gibi çekirdek
- * semantic renkler ve okunabilirlik ASLA değişmez.
+ * tonu ve ambient.wash değişir (primitive.color.ambient). Kart, metin,
+ * navigasyon gibi çekirdek semantic renkler ve okunabilirlik ASLA değişmez.
+ *
+ * ACCENT (15 §6): accent ekran sözleşmesinden gelir (`ScreenVisualSpec.accentHex`)
+ * — ScreenShell ekranın accent'ini `withAccent` ile yayar. Varsayılan, ürünün
+ * botanik kimliği: botanical.sage.
  *
  * Bileşenler primitive'e DOĞRUDAN bağlanamaz (§11.4) — bu dosya tek eşleme
  * noktasıdır; grup adları §45'in semantic setinden (surface/text/border/action/
- * navigation) Faz 1'de kullanılan alt küme.
+ * navigation).
  */
 
 import { primitive } from '../tokens/primitive.generated';
+import { bestTextOn } from './contrast';
 
 export type TimeOfDay = keyof typeof primitive.color.ambient;
 
-const p = primitive.color.light;
+const c = primitive.color.chrome;
 
-export function buildSemanticColors(timeOfDay: TimeOfDay) {
+/** Ekran sözleşmesi accent vermezse kullanılan varsayılan (15 §7 home accent). */
+export const DEFAULT_ACCENT = primitive.color.botanical.sage;
+
+export function buildSemanticColors(timeOfDay: TimeOfDay, accentHex: string = DEFAULT_ACCENT) {
   return {
     surface: {
       /** Ekran zemini — TEK ambient'e duyarlı renk. */
       canvas: primitive.color.ambient[timeOfDay],
       /** Ambient'ten bağımsız sabit taban (kart üstü rozet/çip zeminleri). */
-      base: p.background,
-      card: p.backgroundElement,
-      selected: p.backgroundSelected,
+      base: c.background,
+      card: c.surface,
+      selected: c.surfaceTint,
+      /** Pudra rozet/çip zemini (15 §3 "powder blush"); koyu metinle 10.7:1. */
+      powder: c.powder,
     },
     /**
      * Ambient grubu (§45 semantic seti; §11.5): ekran üstünün yumuşak ışık
      * yıkaması. `wash` günün saat diliminin tonudur, `base` eridiği nötr
-     * zemin — gün diliminde wash === base (yıkama görünmez, degrade nötr).
-     * YENİ RENK DEĞİL: her iki değer de mevcut primitivlerdir.
+     * krom zemin (15 §4 background). YENİ RENK DEĞİL.
      */
     ambient: {
       wash: primitive.color.ambient[timeOfDay],
-      base: p.background,
+      base: c.background,
     },
     text: {
-      primary: p.text,
-      secondary: p.textSecondary,
+      primary: c.textPrimary,
+      secondary: c.textSecondary,
+      /**
+       * Yalnız büyük/dekoratif metin: kart üstünde 4.35:1 — normal gövde
+       * metninin AA sınırının (4.5:1) altında (15 §10).
+       */
+      muted: c.textMuted,
     },
     border: {
-      subtle: p.backgroundSelected,
-      strong: p.text,
+      subtle: c.border,
+      strong: c.textPrimary,
     },
     action: {
-      /** Primary buton zemini / vurgu eylem rengi. */
-      primary: p.accent,
-      /** Accent zemin üstü metin — saf beyaz değil, pudra krem (§11.3). */
-      onPrimary: p.background,
+      /** Primary buton zemini / vurgu eylem rengi — ekran accent'i. */
+      primary: accentHex,
+      /**
+       * Accent zemin üstü metin: krom metni ile krom yüzeyinden HESAPLA ile
+       * seçilir (15 §10). Sabit "beyaz metin" varsayımı orta tonlu accent'lerde
+       * AA'yı geçmiyordu (adaçayı üstünde beyaz 3.03:1 → koyu metin 4.76:1);
+       * koyu accent'lerde (yosun) tersi doğru. Tek hesap kaynağı: theme/contrast.
+       */
+      onPrimary: bestTextOn(accentHex, [c.textPrimary, c.surface]),
       /** Secondary (çerçeveli) buton çerçevesi + metni. */
-      outline: p.accent,
+      outline: accentHex,
       /** Tertiary (tonal) buton zemini. */
-      tonal: p.backgroundSelected,
-      onTonal: p.text,
+      tonal: c.surfaceTint,
+      onTonal: c.textPrimary,
       /** Ghost (yalnız metin) buton metni. */
-      ghost: p.accent,
-      /** Yıkıcı eylem zemini (GEÇİCİ değer — tokens.json'da işaretli). */
-      destructive: p.danger,
-      onDestructive: p.background,
+      ghost: accentHex,
+      /** Yıkıcı eylem zemini — botanik ailenin terracotta'sı (15 §4). */
+      destructive: primitive.color.botanical.terracotta,
+      onDestructive: c.surface,
     },
     navigation: {
       /** Tab bar / header zemini sabittir — ambient yalnız canvas'ı tonlar. */
-      background: p.background,
-      border: p.backgroundElement,
-      active: p.text,
-      inactive: p.textSecondary,
+      background: c.surface,
+      border: c.border,
+      active: c.textPrimary,
+      inactive: c.textSecondary,
     },
   } as const;
 }
 
 export type SemanticColors = ReturnType<typeof buildSemanticColors>;
+
+/**
+ * Hazır semantic setin accent'ini ekran sözleşmesininkiyle değiştirir
+ * (15 §6 accentHex). ScreenShell kullanır; ambient/krom değerlerine dokunmaz.
+ */
+export function withAccent(colors: SemanticColors, accentHex: string): SemanticColors {
+  if (colors.action.primary === accentHex) return colors;
+  return {
+    ...colors,
+    action: {
+      ...colors.action,
+      primary: accentHex,
+      onPrimary: bestTextOn(accentHex, [c.textPrimary, c.surface]),
+      outline: accentHex,
+      ghost: accentHex,
+    },
+  };
+}

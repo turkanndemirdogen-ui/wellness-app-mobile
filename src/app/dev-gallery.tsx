@@ -87,6 +87,7 @@ import { primitive } from '@/design-system/tokens/primitive.generated';
 import { allScreenSpecs } from '@/design-system/tokens/screen-specs';
 import { HerbImage } from '@/domain-ui';
 import { fetchHerbs, type Herb } from '@/lib/content';
+import { herbLatin } from '@/lib/home';
 import { TR_TEST_STRING } from '@/lib/text-tr';
 
 const TEXT_ROLES = Object.keys(textRoles) as TextRoleName[];
@@ -766,11 +767,6 @@ function GlyphBreathDemo() {
 }
 
 /** Herb.data JSONB'sinden Latince ad (motor tablo `names.la`); yoksa em dash. */
-function herbLatin(herb: Herb): string {
-  const names = herb.data?.names as { la?: string } | undefined;
-  return names?.la ?? '—';
-}
-
 /**
  * Canlı vitrin: fetchHerbs → görseli olan ilk 4 bitki, PlantCard media
  * slotunda HerbImage ile. Supabase yapılandırılmamışsa/DB boşsa teşhis metni
@@ -819,13 +815,13 @@ function LiveHerbCards() {
           key={herb.herb_id}
           variant="grid"
           commonName={herb.name_tr ?? herb.herb_id}
-          scientificName={herbLatin(herb)}
+          scientificName={herbLatin(herb) ?? '—'}
           toxicityBadge={herb.data?.guvenlik?.uyari_chip ?? undefined}
           media={
             <HerbImage
               imagePath={herb.image_path}
               imageVersion={herb.image_version}
-              scientificName={herbLatin(herb)}
+              scientificName={herbLatin(herb) ?? '—'}
             />
           }
         />

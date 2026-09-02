@@ -15,7 +15,12 @@ import {
 } from 'react';
 import { AppState } from 'react-native';
 
-import { buildSemanticColors, type SemanticColors, type TimeOfDay } from './semantic';
+import {
+  buildSemanticColors,
+  withAccent,
+  type SemanticColors,
+  type TimeOfDay,
+} from './semantic';
 import { primitive } from '../tokens/primitive.generated';
 
 export function getTimeOfDay(date: Date): TimeOfDay {
@@ -75,4 +80,25 @@ export function AppThemeProvider({
 /** Semantic tema değerlerini okur. AppThemeProvider ağacı içinde kullanılır. */
 export function useTheme(): ThemeValue {
   return useContext(ThemeContext);
+}
+
+/**
+ * ScreenAccent — ekran sözleşmesinin accent'ini (15 §6 `accentHex`) alt ağaca
+ * yayar. ScreenShell her ekranı bununla sarar; krom, ambient ve tipografi
+ * DEĞİŞMEZ — yalnız action.* vurgu renkleri ekrana özelleşir (15 §7-8: home
+ * adaçayı, keşif gökyüzü, bahçe yosun, sohbet menekşe).
+ */
+export function ScreenAccent({
+  accentHex,
+  children,
+}: {
+  accentHex: string;
+  children: ReactNode;
+}) {
+  const parent = useTheme();
+  const value = useMemo<ThemeValue>(
+    () => ({ ...parent, colors: withAccent(parent.colors, accentHex) }),
+    [parent, accentHex],
+  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
