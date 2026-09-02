@@ -9,7 +9,21 @@ export {
   type HerbIllustrationProps,
 } from './herb-illustration';
 export { HERB_ILLUSTRATIONS } from './herb-illustration-assets';
-export { DailyHerbHero, HeroMoonChip, type DailyHerbHeroProps } from './daily-herb-hero';
+export {
+  DailyHerbHero,
+  HeroChip,
+  HeroMoonChip,
+  heroChipTextColor,
+  resolveCloudAlpha,
+  type DailyHerbHeroProps,
+} from './daily-herb-hero';
+export {
+  HERB_HERO_LUMA,
+  HERO_TEXT_AA,
+  HERO_PLACEHOLDER_CLOUD_ALPHA,
+  HERO_PLACEHOLDER_CONTRAST,
+  type HerbHeroLuma,
+} from './herb-hero-luma.generated';
 export {
   HerbImage,
   HERB_IMAGE_BUCKET,

@@ -52,41 +52,36 @@ describe('kontrast — gövde metni (15 §10: normal metin ≥ 4.5:1)', () => {
   });
 });
 
-describe('kontrast — hero scrim üstü metin (15 EK-A · §10)', () => {
+describe('kontrast — hero bağlam şeridi (çip görselden bağımsız)', () => {
   /**
-   * Scrim'in alt durağı görselin ÜSTÜNE alfa ile biner. En kötü hâl: altta
-   * bembeyaz bir görsel — scrim ne kadar açılırsa metin o kadar zorlanır.
-   * Bu bileşim AA'yı geçiyorsa gerçek botanik fotoğrafların hepsinde geçer.
+   * Tarih ve ay çipi görsele göre DEĞİŞMEZ (ürün sahibi kuralı): sabit
+   * koyu-altın metin, aynı tonda hairline, açık-altın yüzey. Yüzey olmadan
+   * koyu-altın metin fotoğraf üstünde 2.6:1'de kalıyordu; yüzey deterministik
+   * kontrast verir. Hero METNİNİN (beyaz ad + bilimsel ad) emniyeti ayrı
+   * testtedir: hero-text-contrast.
    */
-  function compositeOverWhite(rgbaValue: string): string {
+  const chip = primitive.material.heroChip;
+
+  function opaque(rgbaValue: string): string {
     const parts = rgbaValue.replace(/rgba?\(|\)/g, '').split(',').map(Number);
-    const [r, g, b, a] = parts;
-    const mix = (channel: number) => Math.round(channel * a + 255 * (1 - a));
-    return `#${[mix(r), mix(g), mix(b)].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+    return `#${parts
+      .slice(0, 3)
+      .map((v) => Math.round(v).toString(16).padStart(2, '0'))
+      .join('')}`;
   }
 
-  const worstCase = compositeOverWhite(primitive.material.heroAtmosphere.bottom);
-
-  it('yaygın ad (onPanel) en kötü hâlde bile AA', () => {
-    const { text } = buildSemanticColors('day');
-    expect(ratio(text.onPanel, worstCase)).toBeGreaterThanOrEqual(AA_NORMAL);
+  it('koyu-altın metin, açık-altın çip yüzeyinde AA', () => {
+    expect(ratio(chip.text, opaque(chip.backing))).toBeGreaterThanOrEqual(AA_NORMAL);
   });
 
-  it('bilimsel ad (açık lila) en kötü hâlde bile AA', () => {
-    const { text } = buildSemanticColors('day');
-    expect(ratio(text.onPanelAccent, worstCase)).toBeGreaterThanOrEqual(AA_NORMAL);
+  it('çip yüzeyi beyaz DEĞİL (ürün sahibi kuralı)', () => {
+    expect(opaque(chip.backing).toUpperCase()).not.toBe('#FFFFFF');
   });
 
-  it('bağlam şeridi metni (onPanelSecondary) en az büyük-metin eşiğini geçer', () => {
-    const { text } = buildSemanticColors('day');
-    expect(ratio(text.onPanelSecondary, worstCase)).toBeGreaterThanOrEqual(AA_NORMAL);
-  });
-
-  it('scrim alt durağı yeterince opak — metin bandı görselden bağımsız', () => {
-    const alpha = Number(
-      primitive.material.heroAtmosphere.bottom.replace(/rgba?\(|\)/g, '').split(',')[3],
-    );
-    expect(alpha).toBeGreaterThanOrEqual(0.85);
+  it('hairline metinle aynı tondan türer', () => {
+    const [r, g, b] = chip.hairline.replace(/rgba?\(|\)/g, '').split(',').map(Number);
+    const text = chip.text.replace('#', '');
+    expect([r, g, b]).toEqual([0, 2, 4].map((i) => parseInt(text.slice(i, i + 2), 16)));
   });
 });
 

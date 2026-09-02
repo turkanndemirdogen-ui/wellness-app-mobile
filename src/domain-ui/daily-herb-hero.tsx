@@ -1,40 +1,40 @@
 /**
- * DailyHerbHero — Ana Sayfa'nın sinematik hero paneli ("Büyülü" yön kararı,
- * ürün sahibi C seçeneği, 2026-09-02).
+ * DailyHerbHero — Ana Sayfa'nın sinematik hero paneli.
+ *
+ * SCRIM YÖNÜ DEĞİŞİMİ (ürün sahibi, 2026-09-02): tam boy dikey koyulaşma
+ * KALDIRILDI. Bitki görseli merkezde tam netlikte durur; atmosfer kenarlardan
+ * gelir.
  *
  * KATMANLAR (alttan üste):
- *   1. Görsel — tam genişlik, kenar boşluğu sıfır; köşe yuvarlaması YALNIZ
- *      altta (üst kenar ekranla birleşir). Storage görseli yoksa HerbImage'in
- *      nötr yer tutucusu (10 §11).
+ *   1. Görsel — tam genişlik, kenar boşluğu sıfır; köşe yuvarlaması yalnız
+ *      altta. Storage görseli yoksa HerbImage'in nötr yer tutucusu (10 §11).
  *   2. Paralaks — görsel scroll'dan yavaş kayar (§17); kap kayma payıyla kurulu.
- *   3. Atmosferik scrim — üstte patlıcan-menekşe, ortada indigo, altta gece
- *      (material.heroAtmosphere). Alt durak 0.90 opaklıkta: adın oturduğu
- *      bantta kontrast ALTTAKİ GÖRSELDEN BAĞIMSIZ olur (15 §10 + AA).
- *   4. Altın ışık huzmesi — üst köşeden yayılan yumuşak RADYAL altın
- *      (glow.ceremonial → ambientWarm → şeffaf). Nefes alan ambient katmanla
- *      BİRLİKTE solup derinleşir; iki ayrı animasyon değil, tek ışık nefesi.
- *      Radyal degrade react-native-svg ile kurulur (expo-linear-gradient
- *      yalnız doğrusal geçiş verir; huzme köşeden YAYILMALI).
- *   5. Bağlam şeridi — tarih + ay çipi panelin İÇİNDE, üst köşelerde; metin
- *      açık (onPanel), ay çipi altın vurgulu.
- *   6. Adlar — doğrudan scrim üzerinde: yaygın ad büyük açık Fraunces,
- *      bilimsel ad açık lila italik. Cam plaka YOK.
+ *   3. VİNYET — elips radyal (merkez %50/%38): ortası şeffaf, kenarlara doğru
+ *      patlıcan → gece. Görselin ortası DOKUNULMADAN kalır.
+ *   4. LİLA SİS — tüm hero üstünde ince düz katman; atmosferi birleştirir.
+ *   5. ADAPTİF BULUT — YALNIZ metin bandı açık olan görsellerde: sol-alt
+ *      merkezli, kenarları tamamen yumuşak koyu bulut. Gücü görsel başına
+ *      ÖLÇÜLEREK çözülür (scripts/measure-hero-contrast.py) ve varlık kaydında
+ *      saklanır; cihazda hesaplanmaz.
+ *   6. ALTIN IŞIK HUZMESİ — üst köşeden yayılan radyal altın; en üstteki
+ *      katman. Nefes alan ambient katmanla birlikte solup derinleşir.
+ *
+ * METİN EMNİYETİ (kabul kriteri): ad ve bilimsel ad yumuşak metin gölgesi
+ * taşır; katman bileşimi 11 canlı görselin HEPSİNDE beyaz yazıyla ≥4.5:1
+ * kontrast verir (ölçüm + `hero-text-contrast` testi). Bağlam şeridi görsele
+ * göre DEĞİŞMEZ: sabit koyu-altın metin, aynı tonda hairline, açık-altın
+ * yüzey (beyaz çip yok).
  *
  * KOYULUK SINIRI (15 §3): bu panel, kanonun koyuluğa izin verdiği "hero görsel
- * paneli" katmanıdır. Koyu değerler yalnız buradaki scrim'de yaşar; krom (üst
- * bar, tab bar, form, uzun okuma) açık kalır ve bu bileşen kroma renk vermez.
+ * paneli" katmanıdır. Koyu değerler yalnız buradaki katmanlarda yaşar; krom
+ * (üst bar, tab bar, form, uzun okuma) açık kalır.
  *
- * KİLİTLER: bilimsel ad hiçbir hâlde gizlenmez (07 §6 · 12 §F). Panel bir bütün
- * olarak basılır (§25). Reduced-motion / düşük güç → paralaks ve ışık nefesi
- * tamamen durur, katmanlar statik kalır (§19).
- *
+ * Reduced-motion / düşük güç → paralaks ve ışık nefesi tamamen durur (§19).
  * İzole render edilebilir: yalnız prop + token + tema bağlamı.
  */
 
-import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { useEffect } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -44,6 +44,7 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { AnimatedPressable, usePressFeedback } from '@/design-system/components/use-press-feedback';
 import { useMotionScale } from '@/design-system/hooks';
@@ -52,8 +53,14 @@ import { shadowStyle, useTheme } from '@/design-system/theme';
 import { motionEasing } from '@/design-system/theme/motion';
 import { primitive } from '@/design-system/tokens/primitive.generated';
 import { HerbImage } from './herb-image';
+import {
+  HERB_HERO_LUMA,
+  HERO_PLACEHOLDER_CLOUD_ALPHA,
+} from './herb-hero-luma.generated';
 
 export type DailyHerbHeroProps = {
+  /** Bitki kimliği — ölçülmüş metin emniyeti kaydını bulmak için. */
+  herbId: string;
   /** Yaygın ad — panelin tek büyük serifi (03 §7.1 hero title). */
   commonName: string;
   /** Bilimsel ad — italik, asla gizlenmez (07 §6). */
@@ -65,7 +72,7 @@ export type DailyHerbHeroProps = {
   height: number;
   /** Panelin üstünde bırakılacak güvenli alan payı (durum çubuğu). */
   topInset?: number;
-  /** Bağlam şeridinin sol yanı: tarih (açık renkte, panelin içinde). */
+  /** Bağlam şeridinin sol yanı: tarih. */
   dateLabel?: string;
   /** Bağlam şeridinin sağ yanı: ay çipi içeriği (glif + metin). */
   moonChip?: React.ReactNode;
@@ -77,18 +84,34 @@ export type DailyHerbHeroProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** Görselin scroll boyunca kayabileceği en büyük mesafe (sakin, küçük). */
 const PARALLAX_SHIFT = primitive.space.s24;
-/** Paralaksın tamamlandığı scroll mesafesi. */
 const PARALLAX_INPUT = primitive.space.s96 * 2;
-/** Işık nefesinin tek yönü — ambient bandının alt sınırı (15 §9: 8-16 sn). */
 const BREATH_MS = primitive.motionLimits.ambientMinMs;
-/** Nefesin dibi: ışık hiç sönmez, yalnız derinleşir. */
 const BREATH_MIN = primitive.opacity.pulse;
-
 const TRANSPARENT = primitive.color.scrim.transparent;
 
+const ATM = primitive.material.heroAtmosphere;
+const SAFETY = primitive.material.heroTextSafety;
+
+/** Yüzde dizgesi — SVG objectBoundingBox koordinatları. */
+function pct(value: number): string {
+  return `${value * 100}%`;
+}
+
+/**
+ * Bitkinin ölçülmüş bulut gücü. Kayıt yoksa (yeni görsel, ya da görselsiz
+ * bitki) EN GÜVENLİ tarafa düşer: yer tutucu için çözülen alfa. Sessizce
+ * emniyetsiz kalmaz.
+ */
+export function resolveCloudAlpha(herbId: string, hasImage: boolean): number {
+  if (!hasImage) return HERO_PLACEHOLDER_CLOUD_ALPHA;
+  const record = HERB_HERO_LUMA[herbId];
+  if (!record) return HERO_PLACEHOLDER_CLOUD_ALPHA;
+  return record.needsCloud ? record.cloudAlpha : 0;
+}
+
 export function DailyHerbHero({
+  herbId,
   commonName,
   scientificName,
   imagePath,
@@ -106,7 +129,8 @@ export function DailyHerbHero({
   const { colors } = useTheme();
   const motionScale = useMotionScale();
   const { animatedStyle, onPressIn, onPressOut } = usePressFeedback();
-  const atmosphere = colors.heroAtmosphere;
+
+  const cloudAlpha = resolveCloudAlpha(herbId, Boolean(imagePath && imageVersion));
 
   // --- Tek ışık nefesi: altın huzme ambient bandında derinleşip geri çekilir.
   const breath = useSharedValue(1);
@@ -124,7 +148,6 @@ export function DailyHerbHero({
 
   const breathStyle = useAnimatedStyle(() => ({ opacity: breath.value }));
 
-  // --- Paralaks: görsel içerikten yavaş kayar; kap taşma payıyla kurulu.
   const parallaxStyle = useAnimatedStyle(() => {
     if (motionScale === 0 || !scrollY) return { transform: [{ translateY: 0 }] };
     return {
@@ -162,20 +185,52 @@ export function DailyHerbHero({
         <HerbImage imagePath={imagePath} imageVersion={imageVersion} placeholderAlign="top" />
       </Animated.View>
 
-      {/* 3 · Atmosferik scrim: patlıcan → indigo → gece. */}
-      <LinearGradient
-        colors={[atmosphere.top, atmosphere.upper, atmosphere.mid, atmosphere.bottom]}
-        locations={[0, 0.28, 0.62, 1]}
+      {/* 3 + 5 · Vinyet ve (gerekiyorsa) adaptif bulut — tek SVG katmanında. */}
+      <View pointerEvents="none" style={styles.fillAbsolute}>
+        <Svg width="100%" height="100%">
+          <Defs>
+            {/* Vinyet: ortası şeffaf, kenarlara doğru koyulaşan elips. */}
+            <RadialGradient
+              id="heroVignette"
+              cx={pct(ATM.vignetteCenterX)}
+              cy={pct(ATM.vignetteCenterY)}
+              r={pct(ATM.vignetteRadius)}>
+              <Stop offset={String(ATM.vignetteStop0)} stopColor={ATM.vignetteInner} />
+              <Stop offset={String(ATM.vignetteStop1)} stopColor={ATM.vignetteMid} />
+              <Stop offset="1" stopColor={ATM.vignetteOuter} />
+            </RadialGradient>
+            {/* Adaptif bulut: sol-alt merkezli, kenarları tamamen yumuşak. */}
+            <RadialGradient
+              id="heroCloud"
+              cx={pct(SAFETY.cloudCenterX)}
+              cy={pct(SAFETY.cloudCenterY)}
+              r={pct(SAFETY.cloudRadius)}>
+              <Stop offset="0" stopColor={SAFETY.cloudColor} stopOpacity={cloudAlpha} />
+              <Stop
+                offset={String(SAFETY.cloudStopMid)}
+                stopColor={SAFETY.cloudColor}
+                stopOpacity={cloudAlpha * SAFETY.cloudMidRatio}
+              />
+              <Stop offset="1" stopColor={SAFETY.cloudColor} stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#heroVignette)" />
+          {cloudAlpha > 0 ? (
+            <Rect x="0" y="0" width="100%" height="100%" fill="url(#heroCloud)" />
+          ) : null}
+        </Svg>
+      </View>
+
+      {/* 4 · Lila sis: tüm hero üstünde ince düz katman. */}
+      <View
         pointerEvents="none"
-        style={styles.fillAbsolute}
+        style={[styles.fillAbsolute, { backgroundColor: ATM.lilacMist }]}
       />
 
-      {/* 4 · Altın ışık huzmesi: üst köşeden RADYAL yayılır, nefes alır. */}
+      {/* 6 · Altın ışık huzmesi: üst köşeden radyal yayılır, nefes alır. */}
       <Animated.View pointerEvents="none" style={[styles.fillAbsolute, breathStyle]}>
         <Svg width="100%" height="100%">
           <Defs>
-            {/* Merkez üst-sağ köşe; yarıçap panelin köşegeni kadar → huzme
-                köşeden başlayıp panelin ortasında eriyor. */}
             <RadialGradient id="heroGoldShaft" cx="82%" cy="-4%" r="98%">
               <Stop offset="0" stopColor={colors.glow.ceremonial.color} />
               <Stop offset="0.38" stopColor={colors.glow.ambientWarm.color} />
@@ -186,32 +241,26 @@ export function DailyHerbHero({
         </Svg>
       </Animated.View>
 
-      {/* 5 · Bağlam şeridi: tarih + ay çipi panelin içinde, üst köşelerde. */}
+      {/* Bağlam şeridi: tarih + ay çipi — görselden BAĞIMSIZ, sabit koyu-altın. */}
       {dateLabel || moonChip ? (
         <View style={styles.contextStrip} pointerEvents="none">
-          {dateLabel ? (
-            <AppText variant="uiLabel" style={{ color: colors.text.onPanelSecondary }}>
-              {dateLabel}
-            </AppText>
-          ) : (
-            <View />
-          )}
+          {dateLabel ? <HeroChip>{dateLabel}</HeroChip> : <View />}
           {moonChip}
         </View>
       ) : null}
 
-      {/* 6 · Adlar doğrudan scrim üzerinde — cam plaka yok. */}
+      {/* Adlar doğrudan atmosferin üstünde — gölge ile emniyetli. */}
       <View style={styles.names} pointerEvents="none">
         <AppText
           variant="displayHero"
           numberOfLines={2}
-          style={{ color: colors.text.onPanel }}>
+          style={[{ color: colors.text.onPanel }, heroTextShadow]}>
           {commonName}
         </AppText>
         <AppText
           variant="scientificName"
           numberOfLines={1}
-          style={{ color: colors.text.onPanelAccent }}>
+          style={[{ color: colors.text.onPanelAccent }, heroTextShadow]}>
           {scientificName}
         </AppText>
       </View>
@@ -219,15 +268,68 @@ export function DailyHerbHero({
   );
 }
 
+/**
+ * Hero bağlam şeridi kabuğu — koyu-altın metin, aynı tonda hairline, açık-altın
+ * yüzey. Yüzey BEYAZ DEĞİLDİR (ürün sahibi kuralı): altın ailesinin açık ucu.
+ * Yüzey olmadan koyu-altın metin fotoğraf üstünde 2.6:1'de kalıyordu (ölçüldü);
+ * yüzeyle 4.7:1 — görselden bağımsız ve sabit.
+ */
+export function HeroChip({ children }: { children: React.ReactNode }) {
+  return (
+    <Surface role="canvas" radius="full" style={chipStyles.chip}>
+      {typeof children === 'string' ? (
+        <AppText variant="uiLabel" style={chipStyles.label}>
+          {children}
+        </AppText>
+      ) : (
+        children
+      )}
+    </Surface>
+  );
+}
+
+/** Ay çipi — HeroChip kabuğu, içinde glif + metin. */
+export function HeroMoonChip({ children }: { children: React.ReactNode }) {
+  return (
+    <Surface role="canvas" radius="full" style={[chipStyles.chip, chipStyles.row]}>
+      {children}
+    </Surface>
+  );
+}
+
+/** Hero metin gölgesi (kabul kriteri emniyet katmanı 1). */
+const heroTextShadow: TextStyle = {
+  textShadowColor: SAFETY.shadowColor,
+  textShadowOffset: { width: 0, height: SAFETY.shadowOffsetY },
+  textShadowRadius: SAFETY.shadowRadius,
+};
+
+/** Çip metni — sabit koyu-altın (görsele göre değişmez). */
+export const heroChipTextColor = primitive.material.heroChip.text;
+
+const chipStyles = {
+  chip: {
+    backgroundColor: primitive.material.heroChip.backing,
+    borderWidth: primitive.borderWidth.thin,
+    borderColor: primitive.material.heroChip.hairline,
+    paddingHorizontal: primitive.space.s12,
+    paddingVertical: primitive.space.s4,
+  } satisfies ViewStyle,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: primitive.space.s4,
+  } satisfies ViewStyle,
+  label: { color: primitive.material.heroChip.text } satisfies TextStyle,
+};
+
 const styles = {
-  // Kenar boşluğu sıfır; köşe yuvarlaması YALNIZ altta (üst kenar ekranla birleşir).
   panel: {
     borderBottomLeftRadius: primitive.layout.heroRadius,
     borderBottomRightRadius: primitive.layout.heroRadius,
     overflow: 'hidden',
     justifyContent: 'space-between',
   } satisfies ViewStyle,
-  // Kayma payı: üstte ve altta PARALLAX_SHIFT kadar taşar → kenar açılmaz.
   imageLayer: {
     position: 'absolute',
     left: 0,
@@ -254,33 +356,5 @@ const styles = {
     paddingHorizontal: primitive.layout.screenPadding,
     paddingBottom: primitive.space.s24,
     gap: primitive.space.s2,
-  } satisfies ViewStyle,
-  fill: { flex: 1 } satisfies ViewStyle,
-};
-
-/**
- * Hero'nun ay çipi kabuğu — panel içinde altın vurgulu, açık metinli.
- * Krom çipinden (pudra zemin) ayrıdır: koyu scrim üstünde yaşar.
- */
-export function HeroMoonChip({ children }: { children: React.ReactNode }) {
-  const { colors } = useTheme();
-  return (
-    <Surface
-      role="glassDeep"
-      radius="full"
-      style={[chipStyles.chip, { borderColor: colors.border.gold }]}>
-      {children}
-    </Surface>
-  );
-}
-
-const chipStyles = {
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: primitive.space.s4,
-    paddingHorizontal: primitive.space.s12,
-    paddingVertical: primitive.space.s4,
-    borderWidth: primitive.borderWidth.thin,
   } satisfies ViewStyle,
 };

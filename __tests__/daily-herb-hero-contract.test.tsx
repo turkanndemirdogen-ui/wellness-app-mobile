@@ -41,6 +41,7 @@ const LABEL = `Günün bitkisi: ${COMMON}, ${SCI}`;
 function hero(imagePath: string | null) {
   return (
     <DailyHerbHero
+      herbId="lavanta"
       commonName={COMMON}
       scientificName={SCI}
       imagePath={imagePath}

@@ -88,7 +88,7 @@ import {
   SectionHeader,
   Skeleton,
 } from '@/design-system/components';
-import { DailyHerbHero, HeroMoonChip, MoonPhaseGlyph } from '@/domain-ui';
+import { DailyHerbHero, heroChipTextColor, HeroMoonChip, MoonPhaseGlyph } from '@/domain-ui';
 import {
   AppText,
   isValidQuoteText,
@@ -277,6 +277,7 @@ export default function AnaSayfaScreen() {
         <Reveal>
           <View style={styles.heroBlock}>
             <DailyHerbHero
+              herbId={herb.herb_id}
               commonName={herbName}
               scientificName={herbSci}
               imagePath={herb.image_path}
@@ -288,7 +289,7 @@ export default function AnaSayfaScreen() {
                 transit ? (
                   <HeroMoonChip>
                     <MoonPhaseGlyph phase={transit.moonPhase} />
-                    <AppText variant="uiLabel" style={{ color: c.text.onPanel }}>
+                    <AppText variant="uiLabel" style={{ color: heroChipTextColor }}>
                       {MOON_IN_SIGN_TR[transit.moonSign]} · {MOON_PHASE_TR[transit.moonPhase]}
                     </AppText>
                   </HeroMoonChip>

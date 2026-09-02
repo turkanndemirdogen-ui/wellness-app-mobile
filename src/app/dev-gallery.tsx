@@ -747,6 +747,7 @@ function Gallery() {
             görselden bağımsız (en kötü hâl testte)
           </Text>
           <DailyHerbHero
+            herbId="lavanta"
             commonName="Lavanta"
             scientificName="Lavandula angustifolia"
             imagePath="lavanta/card-01.webp"
@@ -765,6 +766,7 @@ function Gallery() {
             onPress={noop}
           />
           <DailyHerbHero
+            herbId="papatya"
             commonName="Papatya"
             scientificName="Matricaria chamomilla"
             imagePath={null}

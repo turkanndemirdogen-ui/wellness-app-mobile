@@ -186,10 +186,15 @@ export const primitive = {
       }
     },
     "heroAtmosphere": {
-      "top": "rgba(103,80,95,0.30)",
-      "upper": "rgba(130,115,148,0.22)",
-      "mid": "rgba(75,83,116,0.52)",
-      "bottom": "rgba(34,43,56,0.90)"
+      "vignetteCenterX": 0.5,
+      "vignetteCenterY": 0.38,
+      "vignetteRadius": 0.8,
+      "vignetteStop0": 0.3,
+      "vignetteStop1": 0.78,
+      "vignetteInner": "rgba(74,42,110,0)",
+      "vignetteMid": "rgba(74,42,110,0.42)",
+      "vignetteOuter": "rgba(40,20,64,0.78)",
+      "lilacMist": "rgba(140,96,190,0.18)"
     },
     "onPanel": {
       "primary": "#F3F1EC",
@@ -203,6 +208,27 @@ export const primitive = {
     "texture": {
       "background": 0.025,
       "parchment": 0.05
+    },
+    "heroTextSafety": {
+      "shadowColor": "rgba(30,12,45,0.55)",
+      "shadowOffsetY": 1,
+      "shadowRadius": 10,
+      "cloudColor": "rgba(30,12,45,1)",
+      "cloudCenterX": 0.22,
+      "cloudCenterY": 0.88,
+      "cloudRadius": 0.78,
+      "cloudStopMid": 0.55,
+      "textRectLeft": 0.03,
+      "textRectRight": 0.62,
+      "textRectTop": 0.74,
+      "textRectBottom": 0.95,
+      "cloudAlphaMax": 0.92,
+      "cloudMidRatio": 0.58
+    },
+    "heroChip": {
+      "text": "#7A5C1E",
+      "hairline": "rgba(122,92,30,0.45)",
+      "backing": "rgba(247,236,208,0.82)"
     }
   },
   "space": {

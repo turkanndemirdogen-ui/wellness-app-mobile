@@ -79,6 +79,15 @@ const ALLOWLIST = new Map([
     { rules: new Set(['*']), reason: 'üretilmiş token çıktısı — tek kaynak tokens.json' },
   ],
   [
+    'domain-ui/herb-hero-luma.generated.ts',
+    {
+      rules: new Set(['color']),
+      reason:
+        'üretilmiş ölçüm çıktısı — renkler tokens.json’dan KOPYALANIR (ölçüm parmak izi), ' +
+        'elle yazılmaz; tazelik testi hero-text-contrast ile bağlı',
+    },
+  ],
+  [
     'design-system/theme/elevation.ts',
     { rules: new Set(['shadow']), reason: 'token → RN gölge/glow köprüsü (04 §9-10; tek kurulum noktası)' },
   ],
